@@ -1,0 +1,40 @@
+{
+  "name": "TRS Your_Plugin_Name",
+  "description": "Write your plugin description here.",
+  "type": "plugin",
+  "license": "GPL-3.0+",
+  "authors": [
+    {
+      "name": "Ali Shan",
+      "email": "alishanvr@gmail.com",
+      "homepage": "http://www.alishan.therightsol.com",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "email": "info@therightsol.com"
+  },
+  "config": {
+    "platform": {
+      "php": "5.6"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "app\\abstracts\\": "app/abstracts/",
+      "app\\backend\\": "app/backend/",
+      "app\\common\\": "app/common/",
+      "app\\frontend\\": "app/frontend/"
+    },
+    "files": [
+      "app/common/functions.php"
+    ]
+  },
+  "require": {
+    "php" : ">=5.6",
+    "ext-mbstring": "*"
+  },
+  "require-dev": {
+    "lucatume/wp-browser": "^1.21"
+  }
+}

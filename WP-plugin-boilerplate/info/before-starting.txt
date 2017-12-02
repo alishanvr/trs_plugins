@@ -1,0 +1,12 @@
+1)
+    a)  Always update the secret code from "debugging/read-log.php"
+    b)  Always update the "debuggin file path url " from "frameworks/admin-folder/admin/options-init.php"
+2)  Always update the ReduxFramework option name from "frameworks/admin-folder/admin/options-init.php"
+3)  Always write the page-slug from "frameworks/admin-folder/admin/options-init.php"
+4)  Always write the "page_parent" posttype or page slug before starting in  "frameworks/admin-folder/admin/options-init.php"
+5)  Always write the "page_parent_post_type" in  "frameworks/admin-folder/admin/options-init.php"
+6)  Update "common/TRS_Init.php" file name and class name. So that it will not conflict with our other plugins.
+7)  Update all entries that have "__PLUGIN_NAME__" - Update according to your plugin name.
+8)  Search in all files of all occurrence of "__PLUGIN_NAME__" and replace according to your plugin name.
+
+)  After doing all above steps use "composer update -o" command

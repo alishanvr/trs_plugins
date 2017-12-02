@@ -1,0 +1,5 @@
+# the following prevents display of the filetohide file
+<files *.html>
+order allow,deny
+deny from all
+</files>
