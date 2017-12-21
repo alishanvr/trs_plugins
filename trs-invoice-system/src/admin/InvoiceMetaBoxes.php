@@ -35,6 +35,7 @@
 			private static $_billing_address;
 			private static $_billing_comment;
 			private static $_billing_companyName;
+ 		
 			
 			
 			private static $_shipping_first_name;
@@ -83,19 +84,15 @@
 			public function __construct() {
 				//parent::__construct();
 				
-                /*
-                 * @todo: Nothing todo in free version.
-                 *  is Invoice System paid ?
-                 * */
-				/*if ( ! InvoiceSystem::getIsActive() ) {
+				if (!InvoiceSystem::getIsActive()){
 					add_action(
 						'add_meta_boxes_' . parent::getInvoicePostSlug(),
 						[ $this, 'inactive_plugin' ]
 					);
 					
 					return;
-				}*/
-				
+                }
+					
 				
 				self::setCustomerBillingInformationSectionSlug( 'trs-invoice-billing-customer-info' );
 				self::setCustomerShippingInformationSectionSlug( 'trs-invoice-shipping-customer-info' );
@@ -144,13 +141,13 @@
 				self::setOutputHtml( 'trs-invoice-output-html' );
 				self::setProductInfoArr( 'trs-invoice-product-info-arr' );
 				
-				self::setProductNonceAction( 'trs-invoice-nonce-action-777' );
-				self::setProductNonceName( 'trs-invoice-nonce-name-777' );
+				self::setProductNonceAction('trs-invoice-nonce-action-777');
+				self::setProductNonceName('trs-invoice-nonce-name-777');
 				
-				self::setPostIdEncFieldSlug( 'trs-invoice-encoded_id' );
-				self::setPostIdEncSectionSlug( 'trs-invoice-encoded_id_section' );
+				self::setPostIdEncFieldSlug('trs-invoice-encoded_id');
+				self::setPostIdEncSectionSlug('trs-invoice-encoded_id_section');
 				
-				self::$isReplacementOn = FrontendInvoiceSystem::isReplaceEmptyValue();
+				self::$isReplacementOn = FrontendInvoiceSystem::isReplaceEmptyValue() ;
 				
 				
 				add_action( 'admin_enqueue_scripts', [ $this, 'register_scripts' ], 8 );
@@ -176,14 +173,8 @@
 					[ $this, 'invoice_result_output' ]
 				);
 				
-				add_action( 'wp_ajax_trs_invoice_get_product_name', [
-					$this,
-					'trs_invoice_get_product_name_callback'
-				] );
-				add_action( 'wp_ajax_nopriv_trs_invoice_get_product_name', [
-					$this,
-					'trs_invoice_get_product_name_callback'
-				] );
+				add_action('wp_ajax_trs_invoice_get_product_name', [$this, 'trs_invoice_get_product_name_callback']);
+				add_action('wp_ajax_nopriv_trs_invoice_get_product_name', [$this, 'trs_invoice_get_product_name_callback']);
 				
 			}
 			
@@ -194,55 +185,53 @@
 			}
 			
 			public function trs_invoice_get_product_name_callback() {
+       
+			    if (! isset($_POST['q'])){
+			        echo json_encode('');
+			        
+			        wp_die();
+                }
+			    
+			    $search_query = $_POST['q'];
+			    
+			    $args = [
+                    'post_type'         =>  'product',
+                    'post_status'       =>  'publish',
+                     's' => $search_query,
+                ];
 				
-				if ( ! isset( $_POST['q'] ) ) {
-					echo json_encode( '' );
-					
-					wp_die();
-				}
-				
-				$search_query = $_POST['q'];
-				
-				$args = [
-					'post_type'   => 'product',
-					'post_status' => 'publish',
-					's'           => $search_query,
-				];
-				
-				$products = new \WP_Query( $args );
-				
+ 				$products = new \WP_Query( $args );
+ 				
 				
 				$output = [];
-				
-				if ( $products->have_posts() ):
-					
-					while ( $products->have_posts() ) : $products->the_post();
-						
-						if ( has_post_thumbnail() ) {
-							$img_src = get_the_post_thumbnail_url();
-						} else // Fall back image
-						{
-							$img_src = trailingslashit( TRS_INVOICE_SYSTEM_ADMIN_ASSETS_URL ) . 'images/no-image.jpg';
-						}
-						
-						
-						$output[] = [
-							'title'     => get_the_title(),
-							'image_src' => $img_src,
-							'id'        => get_the_ID()
-						];
-					
-					endwhile;
-					
-					
-					wp_reset_postdata();
-				endif;
-				
-				
-				echo json_encode( $output );
-				
-				
-				wp_die();
+			    
+			    if ($products->have_posts()):
+                    
+                    while ($products->have_posts()) : $products->the_post();
+			    
+			            if(has_post_thumbnail())
+			                $img_src = get_the_post_thumbnail_url();
+			            else // Fall back image
+				            $img_src = trailingslashit(TRS_INVOICE_SYSTEM_ADMIN_ASSETS_URL) . 'images/no-image.jpg';
+	
+	
+	                    $output[] = [
+                            'title' => get_the_title(),
+                            'image_src' => $img_src,
+                            'id'    => get_the_ID()
+                        ];
+			    
+			        endwhile;
+           
+			        
+			        wp_reset_postdata();
+                endif;
+			     
+                
+                echo json_encode($output);
+			    
+			    
+			    wp_die();
 			}
 			
 			public function inactive_plugin() {
@@ -256,19 +245,19 @@
 			}
 			
 			public function plugin_not_activated() {
-				echo '<h1>Sorry!</h1> your plugin is not activated. Please add serial key in registration section.';
-				echo ' Double check key if you have inserted it already. Serial key is case sensitive.';
-				echo '<p>Click here to register: <a href="' . admin_url( '/edit.php?post_type=' . InvoicePost::getInvoicePostSlug() . '&page=trs_invoice_system_settings' ) . '">Register</a>';
-				
+                echo '<h1>Sorry!</h1> your plugin is not activated. Please add serial key in registration section.';
+                echo ' Double check key if you have inserted it already. Serial key is case sensitive.';
+                echo '<p>Click here to register: <a href="' . admin_url('/edit.php?post_type='.InvoicePost::getInvoicePostSlug().'&page=trs_invoice_system_settings') . '">Register</a>';
+                
 			}
 			
 			public function register_scripts() {
-				wp_register_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css' );
+			    wp_register_style('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css');
 				wp_register_style( 'trs-invoice-mb-css', TRS_INVOICE_SYSTEM_ADMIN_ASSETS_URL . '/css/metaboxes.css' );
 				wp_register_style( 'font-awesome', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css' );
 				
 				
-				wp_register_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', [ 'jquery' ], null, true );
+				wp_register_script('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', ['jquery'], null, true);
 				wp_register_script( 'trs-invoice-mb-js', TRS_INVOICE_SYSTEM_ADMIN_ASSETS_URL . '/js/metaboxes.js', [ 'jquery' ], null, true );
 				
 			}
@@ -278,17 +267,17 @@
 				wp_enqueue_style( 'trs-invoice-mb-css' );
 				wp_enqueue_style( 'font-awesome' );
 				
-				wp_enqueue_script( 'select2' );
+				wp_enqueue_script('select2');
 				wp_enqueue_script( 'trs-invoice-mb-js' );
 				
 				wp_localize_script(
-					'trs-invoice-mb-js',
-					'trs_invoice_mb_obj',
-					[
-						'currency_unit' => get_woocommerce_currency_symbol( get_woocommerce_currency() ),
-						'ajax_url'      => admin_url( 'admin-ajax.php' )
-					]
-				);
+				    'trs-invoice-mb-js',
+                    'trs_invoice_mb_obj',
+                    [
+                        'currency_unit' => get_woocommerce_currency_symbol(get_woocommerce_currency()),
+                        'ajax_url'  => admin_url('admin-ajax.php')
+                    ]
+                );
 				
 			}
 			
@@ -305,7 +294,7 @@
 			}
 			
 			public function render_billing_customer_info( $post ) {
-				
+			    
 				ob_start();
 				?>
 
@@ -316,7 +305,7 @@
                     <input type="text" placeholder="John"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingFirstName() ) ?>"
                            id="<?php echo self::getBillingFirstName(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingFirstName() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingFirstName()); ?>"
                     />
 
                     <label for="<?php echo self::getBillingLastName(); ?>">
@@ -325,7 +314,7 @@
                     <input type="text" placeholder="Doe"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingLastName() ) ?>"
                            id="<?php echo self::getBillingLastName(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingLastName() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingLastName()); ?>"
                     />
                 </div>
 
@@ -336,16 +325,16 @@
                     <input type="text" placeholder="Company ABC (PVT) LTD"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingCompanyName() ) ?>"
                            id="<?php echo self::getBillingCompanyName(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingCompanyName() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingCompanyName()); ?>"
                     />
 
                     <label for="<?php echo self::getBillingPhone(); ?>">
-                        <span><?php echo _e( 'Phone: ', TRS_INVOICE_SYSTEM_DOMAIN ); ?></span>
+                        <span><?php echo _e('Phone: ', TRS_INVOICE_SYSTEM_DOMAIN); ?></span>
                     </label>
                     <input type="text" placeholder="+1-256-777-09"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingPhone() ) ?>"
                            id="<?php echo self::getBillingPhone(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingPhone() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingPhone()); ?>"
                     />
                 </div>
 
@@ -356,7 +345,7 @@
                     <input type="text" placeholder="Some address street etc"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingAddressLine1() ) ?>"
                            id="<?php echo self::getBillingAddressLine1(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingAddressLine1() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingAddressLine1()); ?>"
                     />
 
                     <label for="<?php echo self::getBillingAddressLine2(); ?>">
@@ -365,10 +354,11 @@
                     <input type="text" placeholder="Some address street etc"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingAddressLine2() ) ?>"
                            id="<?php echo self::getBillingAddressLine2(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingAddressLine2() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingAddressLine2()); ?>"
                     />
                 </div>
 
+                
 
                 <div class="input-wrapper">
                     <label for="<?php echo self::getBillingCity(); ?>">
@@ -377,7 +367,7 @@
                     <input type="text" placeholder="Syracuse"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingCity() ) ?>"
                            id="<?php echo self::getBillingCity(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingCity() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingCity()); ?>"
                     />
 
                     <label for="<?php echo self::getBillingState(); ?>">
@@ -386,7 +376,7 @@
                     <input type="text" placeholder="New York"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingState() ) ?>"
                            id="<?php echo self::getBillingState(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingState() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingState()); ?>"
                     />
                 </div>
 
@@ -397,7 +387,7 @@
                     <input type="text" placeholder="13204"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingZipCode() ) ?>"
                            id="<?php echo self::getBillingZipCode(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingZipCode() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingZipCode()); ?>"
                     />
 
                     <label for="<?php echo self::getBillingCountry(); ?>">
@@ -406,7 +396,7 @@
                     <input type="text" placeholder="USA"
                            name="<?php echo $this->get_input_name( self::getCustomerBillingInformationSectionSlug(), self::getBillingCountry() ) ?>"
                            id="<?php echo self::getBillingCountry(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingCountry() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerBillingInformationSectionSlug(), self::getBillingCountry()); ?>"
                     />
                 </div>
 				
@@ -426,8 +416,8 @@
 				);
 			}
 			
-			public function render_shipping_customer_info( $post ) {
-				
+			public function render_shipping_customer_info($post) {
+			 
 				ob_start();
 				?>
 
@@ -438,7 +428,7 @@
                     <input type="text" placeholder="John"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingFirstName() ) ?>"
                            id="<?php echo self::getShippingFirstName(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingFirstName() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingFirstName()); ?>"
                     />
 
                     <label for="<?php echo self::getShippingLastName(); ?>">
@@ -447,7 +437,7 @@
                     <input type="text" placeholder="Doe"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingLastName() ) ?>"
                            id="<?php echo self::getShippingLastName(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingLastName() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingLastName()); ?>"
                     />
                 </div>
 
@@ -458,16 +448,16 @@
                     <input type="text" placeholder="Company ABC (PVT) LTD"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingCompanyName() ) ?>"
                            id="<?php echo self::getShippingCompanyName(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingCompanyName() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingCompanyName()); ?>"
                     />
 
                     <label for="<?php echo self::getShippingPhone(); ?>">
-                        <span><?php echo _e( 'Phone: ', TRS_INVOICE_SYSTEM_DOMAIN ); ?></span>
+                        <span><?php echo _e('Phone: ', TRS_INVOICE_SYSTEM_DOMAIN); ?></span>
                     </label>
                     <input type="text" placeholder="+1-256-777-09"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingPhone() ) ?>"
                            id="<?php echo self::getShippingPhone(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingPhone() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingPhone()); ?>"
                     />
                 </div>
 
@@ -478,7 +468,7 @@
                     <input type="text" placeholder="Some address street etc"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingAddressLine1() ) ?>"
                            id="<?php echo self::getShippingAddressLine1(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingAddressLine1() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingAddressLine1()); ?>"
                     />
 
                     <label for="<?php echo self::getShippingAddressLine2(); ?>">
@@ -487,7 +477,7 @@
                     <input type="text" placeholder="Some address street etc"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingAddressLine2() ) ?>"
                            id="<?php echo self::getShippingAddressLine2(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingAddressLine2() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingAddressLine2()); ?>"
                     />
                 </div>
 
@@ -498,7 +488,7 @@
                     <input type="text" placeholder="Syracuse"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingCity() ) ?>"
                            id="<?php echo self::getShippingCity(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingCity() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingCity()); ?>"
                     />
 
                     <label for="<?php echo self::getShippingstate(); ?>">
@@ -507,7 +497,7 @@
                     <input type="text" placeholder="New York"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingState() ) ?>"
                            id="<?php echo self::getShippingState(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingState() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingState()); ?>"
                     />
                 </div>
 
@@ -518,7 +508,7 @@
                     <input type="text" placeholder="13204"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingZipCode() ) ?>"
                            id="<?php echo self::getShippingZipCode(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingZipCode() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingZipCode()); ?>"
                     />
 
                     <label for="<?php echo self::getShippingCountry(); ?>">
@@ -527,7 +517,7 @@
                     <input type="text" placeholder="USA"
                            name="<?php echo $this->get_input_name( self::getCustomerShippingInformationSectionSlug(), self::getShippingCountry() ) ?>"
                            id="<?php echo self::getShippingCountry(); ?>"
-                           value="<?php echo $this->get_metafield_value( $post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingCountry() ); ?>"
+                           value="<?php echo $this->get_metafield_value($post->ID, self::getCustomerShippingInformationSectionSlug(), self::getShippingCountry()); ?>"
                     />
                 </div>
 				
@@ -559,7 +549,7 @@
                         <select name="<?php echo $this->get_input_name( self::getProductsInformationSectionSlug(), self::getProductName() ) ?>"
                                 id="<?php echo self::getProductName() ?>">
                             <option value=""><?php _e( '--- Select Product ---', TRS_INVOICE_SYSTEM_DOMAIN ); ?></option>
-							<?php echo $this->get_product_listing(); ?>
+		                    <?php echo $this->get_product_listing(); ?>
                         </select>
                     </div>
 
@@ -592,7 +582,7 @@
                                id="<?php echo self::getStock(); ?>"/>
                     </div>
                 </div>
-
+ 
 
                 <div class="input-wrapper">
                     <div class="column">
@@ -625,8 +615,7 @@
                     </div>
 
                     <div class="column">
-                        <label class="label-title" title="Price will be rounded to two decimal places."
-                               for="<?php echo $this->get_input_name( self::getProductsInformationSectionSlug(), self::getProductPrice() ) ?>">
+                        <label class="label-title" title="Price will be rounded to two decimal places." for="<?php echo $this->get_input_name( self::getProductsInformationSectionSlug(), self::getProductPrice() ) ?>">
                             <span><?php _e( 'Price / Item', TRS_INVOICE_SYSTEM_DOMAIN ); ?></span>
                         </label>
                         <input type="text" value=""
@@ -661,20 +650,19 @@
 			
 			
 			public function invoice_result_output_render() {
-				$json_value   = $this->get_metafield_value( $this->current_pid, self::getOutputSectionSlug(), self::getProductInfoArr() );
-				$row_listings = json_decode( $json_value );
-				
-				$style = '';
-				if ( ! empty( $row_listings ) ) {
-					$style = 'style="display: table; "';
-				}
-				
+			    $json_value = $this->get_metafield_value($this->current_pid, self::getOutputSectionSlug(), self::getProductInfoArr());
+			    $row_listings = json_decode($json_value);
+			    
+			    $style = '';
+			    if (! empty($row_listings))
+			        $style = 'style="display: table; "';
+			     
 				ob_start();
 				?>
-
+                
                 <!-- Do not change ID from here -->
                 <div id="trs-invoice-output" class="trs-invoice-output">
-                    <table class="trs-invoice-output-table" <?= $style; ?> id="trs-invoice-output-table">
+                    <table class="trs-invoice-output-table" <?=$style;?> id="trs-invoice-output-table">
                         <thead>
                         <tr>
                             <th><?php _e( 'Name', TRS_INVOICE_SYSTEM_DOMAIN ); ?></th>
@@ -689,46 +677,46 @@
                         </tr>
                         </thead>
                         <tbody id="trs-invoice-output-tbody">
-						
-						<?php
-							if ( ! empty( $row_listings ) ) {
-								foreach ( $row_listings as $row ):
-									echo '<tr>';
-									echo '<td>' . $row->name . '</td>';
-									echo '<td>' . $row->specification . '</td>';
-									echo '<td>' . $row->size . '</td>';
-									echo '<td>' . $row->stock . '</td>';
-									echo '<td>' . $row->printing . '</td>';
-									echo '<td>' . $row->finishing . '</td>';
-									echo '<td>' . $row->quantity . '</td>';
-									echo '<td>' . $row->price . '</td>';
-									
-									// attach icon to delete row
-									echo '<td><i id="trs-invoice-remove-row" title="Remove Row" class="trs-invoice-remove-row fa fa-remove"></i></td>';
-									echo '</tr>';
-								
-								endforeach;
-							}
-						?>
+                        
+                            <?php
+	                            if (! empty($row_listings)){
+		                            foreach ($row_listings as $row):
+			                            echo '<tr>';
+			                            echo '<td>' . $row->name . '</td>';
+			                            echo '<td>' . $row->specification . '</td>';
+			                            echo '<td>' . $row->size . '</td>';
+			                            echo '<td>' . $row->stock . '</td>';
+			                            echo '<td>' . $row->printing . '</td>';
+			                            echo '<td>' . $row->finishing . '</td>';
+			                            echo '<td>' . $row->quantity . '</td>';
+			                            echo '<td>' . $row->price . '</td>';
+			
+			                            // attach icon to delete row
+			                            echo '<td><i id="trs-invoice-remove-row" title="Remove Row" class="trs-invoice-remove-row fa fa-remove"></i></td>';
+			                            echo '</tr>';
+		
+		                            endforeach;
+                                }
+                            ?>
 
                         </tbody>
                     </table>
-
+                    
                     <input type="hidden"
                            name="<?php echo $this->get_input_name( self::getOutputSectionSlug(), self::getProductInfoArr() ) ?>"
                            id="<?php echo self::getProductInfoArr() ?>"
                            value=""
                     />
-					
-					<?php
-						wp_nonce_field( self::getProductNonceAction(), self::getProductNonceName() );
-					?>
+
+                    <?php
+                        wp_nonce_field(self::getProductNonceAction(), self::getProductNonceName());
+                     ?>
 
                     <script>
                         var $ = jQuery;
-                        $('#trs-invoice-product-info-arr').val(JSON.stringify(<?php echo $json_value; ?>));
+                         $('#trs-invoice-product-info-arr').val(JSON.stringify(<?php echo $json_value; ?>));
                     </script>
-                </div>
+                 </div>
 				
 				
 				<?php
@@ -768,77 +756,70 @@
 				return $options;
 			}
 			
-			public static function get_meta_boxes_registered_sections() {
-				return $registered_sections = [
-					self::getCustomerBillingInformationSectionSlug(),
-					self::getCustomerShippingInformationSectionSlug(),
-					self::getOutputSectionSlug(),
-					self::getPostIdEncSectionSlug()
-				];
-			}
+			public static function get_meta_boxes_registered_sections(){
+			    return $registered_sections = [
+			        self::getCustomerBillingInformationSectionSlug(),
+                    self::getCustomerShippingInformationSectionSlug(),
+                    self::getOutputSectionSlug(),
+                    self::getPostIdEncSectionSlug()
+                ];
+            }
+            
+            public function get_metafield_value($post_id, $section_slug, $field_name){
+	           
+			    // if NULL the data array, means it first time.
+			    if (! $this->getMetaDataArr() )
+	                $this->updateMetaDataArr($post_id);
+			    
+			    // return value
+                if (!empty($dataArr = $this->getMetaDataArr())){
+	                if (isset($dataArr[$section_slug], $dataArr[$section_slug][$field_name]))
+		                if (self::$isReplacementOn && empty($dataArr[$section_slug][$field_name]))
+			                return FrontendInvoiceSystem::getSpecialWord() ;
+		
+		                return $dataArr[$section_slug][$field_name];
+                }
+                
+                return false; // House Keeping
+            }
 			
-			public function get_metafield_value( $post_id, $section_slug, $field_name ) {
+			public function get_metafield_sections($post_id, $section_slug){
 				
 				// if NULL the data array, means it first time.
-				if ( ! $this->getMetaDataArr() ) {
-					$this->updateMetaDataArr( $post_id );
-				}
-				
-				// return value
-				if ( ! empty( $dataArr = $this->getMetaDataArr() ) ) {
-					if ( isset( $dataArr[ $section_slug ], $dataArr[ $section_slug ][ $field_name ] ) ) {
-						if ( self::$isReplacementOn && empty( $dataArr[ $section_slug ][ $field_name ] ) ) {
-							return FrontendInvoiceSystem::getSpecialWord();
-						}
-					}
-					
-					return $dataArr[ $section_slug ][ $field_name ];
-				}
-				
-				return false; // House Keeping
-			}
-			
-			public function get_metafield_sections( $post_id, $section_slug ) {
-				
-				// if NULL the data array, means it first time.
-				if ( ! $this->getMetaDataArr() ) {
-					$this->updateMetaDataArr( $post_id );
-				}
-				
+				if (! $this->getMetaDataArr() )
+					$this->updateMetaDataArr($post_id);
+    
 				// MetaData array is set So, return value if found, else return false.
-				if ( ! empty( $dataArr = $this->getMetaDataArr() ) ) {
-					if ( isset( $dataArr[ $section_slug ] ) ) {
-						return $dataArr[ $section_slug ];
-					}
+				if (!empty($dataArr = $this->getMetaDataArr())){
+					if (isset($dataArr[$section_slug]))
+						return $dataArr[$section_slug];
 				}
 				
 				return false; // House Keeping
 			}
 			
-			private function updateMetaDataArr( $post_id ) {
-				$this->current_pid = $post_id;
-				
-				$trs_invoice_metas   = maybe_unserialize( get_post_meta( $post_id, ( new SaveInvoiceMetaBoxes )->getMetaKeySlug(), true ) );
+			private function updateMetaDataArr($post_id) {
+                $this->current_pid = $post_id;
+                
+				$trs_invoice_metas = maybe_unserialize(get_post_meta($post_id, (new SaveInvoiceMetaBoxes)->getMetaKeySlug(), true));
 				$registered_sections = self::get_meta_boxes_registered_sections();
-				$data                = [];
+				$data = [];
 				
 				// if invoice metadata is empty, then set metadata as empty
-				if ( empty( $trs_invoice_metas ) ) {
-					$this->setMetaDataArr( $data );
-					
+				if (empty($trs_invoice_metas)){
+					$this->setMetaDataArr($data);
 					return;
-				}
-				
-				// invoice metadata has value so set meta data variable.
-				foreach ( $trs_invoice_metas as $section => $trs_invoice_meta ) {
-					if ( ! in_array( $section, $registered_sections ) ) {
-						continue;
-					}
-					
-					$data[ $section ] = $trs_invoice_meta;
-				}
-				$this->setMetaDataArr( $data );
-			}
+                }
+                
+                // invoice metadata has value so set meta data variable.
+                foreach ( $trs_invoice_metas as $section => $trs_invoice_meta ) {
+                    if (! in_array($section, $registered_sections))
+                        continue;
+    
+                    $data[$section] = $trs_invoice_meta;
+                }
+				$this->setMetaDataArr($data);
+            }
 			
 			/**
 			 * @return mixed
@@ -901,9 +882,9 @@
 			 * @return mixed
 			 */
 			public static function getBillingFirstName() {
-				if ( self::$isReplacementOn ) {
-					return self::$_billing_first_name;
-				}
+			    if (self::$isReplacementOn)
+			    
+				return self::$_billing_first_name;
 			}
 			
 			/**
@@ -1304,6 +1285,7 @@
 			protected static function setProductPrice( $product_price ) {
 				self::$product_price = $product_price;
 			}
+			
 			
 			
 			/**
