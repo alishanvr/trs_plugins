@@ -24,8 +24,12 @@
 				
 				add_action( 'init', [ $this, 'register_invoice_post' ], 6 );
 				
-				if (!InvoiceSystem::getIsActive())
-					return;
+				/*
+	             * @todo: Nothing todo in free version.
+	             *  is Invoice System paid ?
+	             * */
+				/*if (!InvoiceSystem::getIsActive())
+					return;*/
 				
 				add_action( 'init', [ $this, 'invoice_post_taxonomies' ], 6 );
 				

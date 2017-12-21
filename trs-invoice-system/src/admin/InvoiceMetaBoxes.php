@@ -84,14 +84,17 @@
 			public function __construct() {
 				//parent::__construct();
 				
-				if (!InvoiceSystem::getIsActive()){
+				/*
+				* @todo: Nothing todo in free version.
+ 				* */
+				/*if (!InvoiceSystem::getIsActive()){
 					add_action(
 						'add_meta_boxes_' . parent::getInvoicePostSlug(),
 						[ $this, 'inactive_plugin' ]
 					);
 					
 					return;
-                }
+                }*/
 					
 				
 				self::setCustomerBillingInformationSectionSlug( 'trs-invoice-billing-customer-info' );
@@ -234,7 +237,10 @@
 			    wp_die();
 			}
 			
-			public function inactive_plugin() {
+			/*
+            * @todo: Nothing todo in free version.
+            * */
+			/*public function inactive_plugin() {
 				add_meta_box( 'trs-invoice-system-inactive-plugin', __( 'Registration unsuccess', 'TRS_INVOICE_SYSTEM_DOMAIN' ), [
 					$this,
 					'plugin_not_activated'
@@ -249,7 +255,7 @@
                 echo ' Double check key if you have inserted it already. Serial key is case sensitive.';
                 echo '<p>Click here to register: <a href="' . admin_url('/edit.php?post_type='.InvoicePost::getInvoicePostSlug().'&page=trs_invoice_system_settings') . '">Register</a>';
                 
-			}
+			}*/
 			
 			public function register_scripts() {
 			    wp_register_style('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css');

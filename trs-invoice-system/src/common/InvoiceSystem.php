@@ -27,7 +27,13 @@
 			protected $invoice_system_activation_string;
 			protected $invoice_system_plugin_path;
 			protected $paypal_payment_success_page;
- 			static private $is_active;
+			
+			
+			/*
+			* @todo: Nothing todo in free version.
+			*  is Invoice System paid ?
+			* */
+			//static private $is_active;
 			
 			public function __construct( $plugin_path ) {
 				$this->setInvoiceSystemActivationString( 'is_trs_invoicesystem_active' );
@@ -51,7 +57,13 @@
 				}
 				
 				// Separate function so that these can easily remove if required.
-				add_action( 'init', [ $this, 'load_core' ], 1 );
+				
+				/*
+                 * @todo: Nothing todo in free version.
+                 *  is Invoice System paid ?
+                 * */
+				//add_action( 'init', [ $this, 'load_core' ], 1 );
+				
 				add_action( 'init', [ $this, 'define_constants' ], 1 );
 				add_action( 'init', [ $this, 'invoice_post' ], 5 );
 				add_action( 'init', [ $this, 'menu_page' ], 6 ); // @todo: <-- Remove this function and class plus file if not required after fully development of v 1.0.0
@@ -69,8 +81,12 @@
 			}
 			
 			public function woocommerce_not_active() {
-				$html = '<div class="notice notice-error is-dismissible">';
-				$html .= '<p>' . apply_filters('trs_invoice_woocommerce_not_active_msg', __('Woocommerce plugin is not activated. Please be sure that woocommerce is installed and activated.', TRS_INVOICE_SYSTEM_DOMAIN)) . '</p>';
+				
+				$msg = 'WooCommerce plugin is not activated. Please be sure that WooCommerce is installed and activated.';
+				$msg .= '<br />TRS Invoice System requires WooCommerce to work.';
+				
+				$html = '<div class="notice notice-error">';
+				$html .= '<p>' . apply_filters('trs_invoice_woocommerce_not_active_msg', __($msg, TRS_INVOICE_SYSTEM_DOMAIN)) . '</p>';
 				$html .= '</div>';
 				
 				echo apply_filters('trs_invoice_woocommerce_not_active_html', $html);
@@ -115,10 +131,16 @@
 				new LocateTemplates();
 			}
 			
+			
 			public function load_shortcode_class() {
 				new TRS_INVOICE_ShortCodes();
 			}
 			
+			/*
+             * @todo: Nothing todo in free version.
+             *  is Invoice System paid ?
+             * */
+			/*public function load_core() {
 			public function load_core() {
 				global $trs_invoice_system_settings;
 				$key = $trs_invoice_system_settings['regkey'];
@@ -149,30 +171,35 @@
 				
 				
 				// Every thing is ok.
-			}
+			}*/
+			
+			
 			
 			/**
 			 * @return mixed
 			 */
+			/** @todo: Nothing todo in free version.
+			
 			public static function getIsActive() {
 				return self::$is_active;
-			}
+			}*/
 			
 			/**
 			 * @param mixed $is_active
 			 */
-			public static function setIsActive( $is_active ) {
+			/** @todo: Nothing todo in free version.
+			 public static function setIsActive( $is_active ) {
 				self::$is_active = $is_active;
-			}
+			}*/
 			
 			
-			
+			/** @todo: Nothing todo in free version.
 			public function unpaid_plugin_handler() {
 				
 				//@todo: write some logic to remove pages OR do something proper that invoice system stops.
 				self::setIsActive(false);
 				
-			}
+			}*/
 			
 			public function define_constants() {
 				define( 'TRS_INVOICE_SYSTEM_PLUGIN_PATH', $this->getInvoiceSystemPluginPath() );
@@ -183,6 +210,7 @@
 				define( 'TRS_INVOICE_SYSTEM_PAYPAL_DIR_PATH', dirname(TRS_INVOICE_SYSTEM_PLUGIN_PATH) . '/src/paypal' );
 				define( 'TRS_INVOICE_SYSTEM_FrontEnd_ASSETS_URL', TRS_INVOICE_SYSTEM_PLUGIN_URL . '/src/front-end/assets' );
 				define( 'TRS_INVOICE_SYSTEM_VERSION', '1.0.0' );
+				define('TRS_INVOICE_SYSTEM_PLUGIN_NAME', 'TRS Invoice System');
 				define( 'TRS_INVOICE_SYSTEM_DOMAIN', 'trs_invoice_system' );
 				define( 'TRS_INVOICE_SYSTEM_TEMPLATES_PATH', dirname(TRS_INVOICE_SYSTEM_PLUGIN_PATH) . '/src/templates' );
 				define( 'TRS_INVOICE_PAYPAL_PAY_URL', TRS_INVOICE_SYSTEM_PAYPAL_DIR_URL. '/trs-invoice-system-pay' );

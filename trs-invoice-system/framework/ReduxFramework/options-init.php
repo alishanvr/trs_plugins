@@ -287,8 +287,12 @@
 		)
 	) );
 	
-	
-	Redux::setSection( $opt_name, array(
+	/*
+	 *      @todo: Nothing todo in free version.
+	 *      REGISTRATION KEY - DISABLED - FOR FREE VERSION
+	 *
+	 * */
+	/*Redux::setSection( $opt_name, array(
 		'title'  => __( 'Registration', 'redux-framework-demo' ),
 		'id'     => 'plugin-registration',
 		'desc'   => __( 'Register TRS Invoice System', 'redux-framework-demo' ),
@@ -301,7 +305,7 @@
 				'desc'     => __( 'Please enter registration key.', 'redux-framework-demo' ),
 			)
 		)
-	) );
+	) );*/
 	
 	/*
 	 * <--- END SECTIONS
