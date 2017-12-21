@@ -1,0 +1,32 @@
+.dynaimc-fields-wrapper{
+    padding: 10px;
+}
+
+.dynaimc-fields-wrapper > .toolbox{
+    border: 1px dashed #d4d4d4;
+    padding: 15px;
+}
+
+.dynaimc-fields-wrapper > .toolbox > .tool-btn{
+    font-size: 1.3em;
+    text-transform: uppercase;
+    display: inline-block;
+}
+.dynaimc-fields-wrapper > .toolbox > .tool-btn,
+.dynaimc-fields-wrapper > .toolbox > .tool-btn > button {
+    cursor: pointer;
+}
+
+.dynaimc-fields-wrapper > .toolbox > .tool-btn:not(:last-child):after{
+    content: '|';
+    margin: 0 5px;
+}
+
+.dynamic-fields-output{
+    min-height: 250px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    background-color: #d8d8d8
+}

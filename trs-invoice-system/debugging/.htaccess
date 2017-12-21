@@ -1,0 +1,3 @@
+<Files "debug-file.log">
+require all denied
+</Files>

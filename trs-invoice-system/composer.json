@@ -1,0 +1,16 @@
+{
+  "require": {
+    "paypal/rest-api-sdk-php": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "AdminInvoiceSystem\\": "src/admin/",
+      "InvoiceSystem\\": "src/front-end/",
+      "CommonInvoiceSystem\\": "src/common/"
+    },
+    "files": ["src/common/functions.php"]
+  },
+  "require-dev": {
+    "lucatume/wp-browser": "^1.21"
+  }
+}

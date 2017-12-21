@@ -1,0 +1,188 @@
+.error{
+    color: #EB2525;
+}
+
+.invoice-heading{
+    font-weight:bold;
+    text-align: center;
+    font-size:1.6em;
+}
+
+.billing-address-wrapper,
+.shipping-address-wrapper{
+    display: inline-block;
+    width: calc(50% - 40px);
+    border: 1px solid #ececec;
+    padding: 10px;
+    margin: 10px;
+}
+
+.billing-address-wrapper .section-title,
+.shipping-address-wrapper .section-title{
+    padding: 10px;
+    background: #5f5f5f;
+    margin-top: -10px;
+    margin-right: -10px;
+    margin-left: -10px;
+    margin-bottom: 5px;
+    color: white;
+    font-size: 1.3em;
+    text-align: center;
+    font-weight: bold;
+}
+
+.field-wrapper p {
+    margin-bottom: 2px;
+}
+
+.order-details-section{
+    padding: 10px;
+    margin: 10px;
+}
+
+.order-details-section .order-details-heading{
+    font-size:1.6em;
+    font-weight:bold;
+}
+
+.order-details-section .order-total-row td:first-child{
+    text-align: right;
+    font-weight:bold;
+    border-right: none;
+}
+
+.order-details-section .order-total-row td:nth-child(2){
+    font-weight:bold;
+    text-align: center;
+    text-decoration: underline;
+}
+
+.order-details-section .order-total-row td{
+    border: 1px solid #d5d5d5;
+    border-collapse: collapse;
+}
+.checkout-section form{
+    text-align: center;
+}
+.checkout-section form input[type=image]{
+    max-width: 250px;
+}
+
+.paid{
+    display: block;
+    text-align: center;
+    font-size: 40px;
+    color: #003087;
+    text-shadow: 1px 2px 6px #009cde;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0;
+    line-height: 50px;
+}
+
+.alert{
+    padding: 10px;
+    border-radius: 7px;
+    width: 70%;
+    text-align: center;
+    margin: 15px auto;
+}
+.alert-danger{
+    background: #c01414;
+}
+.alert-success{
+    background: #2bc062;
+}
+.alert p{
+    margin: 0;
+    color: white;
+    text-align: center;
+}
+
+
+@media screen and (max-width: 768px){
+    .billing-address-wrapper, .shipping-address-wrapper {
+        width: calc(50% - 25px);
+    }
+
+    .order-details-table th{
+        padding: 17px;
+    }
+
+}
+
+@media screen and (max-width: 480px){
+    .billing-address-wrapper,
+    .shipping-address-wrapper {
+        width: 100%;
+    }
+
+    .paid{
+        font-size: 22px;
+    }
+}
+
+@media
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+    /* Force table to not be like tables anymore */
+    .order-details-table,
+    .order-details-table thead,
+    .order-details-table tbody,
+    .order-details-table th,
+    .order-details-table td,
+    .order-details-table tr {
+        display: block;
+    }
+
+    /* Hide table headers (but not display: none;, for accessibility) */
+    .order-details-table thead tr {
+        position: absolute;
+        z-index: 9;
+        background: transparent;
+        border: none;
+    }
+
+    .order-details-table th{
+        background: transparent;
+    }
+
+    .order-details-table tr { border: 1px solid #ccc; }
+
+    .order-details-table td {
+        /* Behave  like a "row" */
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+        text-align: right !important;
+    }
+
+    .order-details-table td:before {
+        /* Now like a table header */
+        position: absolute;
+        /* Top/left values mimic padding */
+        top: 6px;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+    }
+
+    /*
+    Label the data
+    */
+    /*td:nth-of-type(1):before { content: "Product Name"; }
+    td:nth-of-type(2):before { content: "Product Specification"; }
+    td:nth-of-type(3):before { content: "Size"; }
+    td:nth-of-type(4):before { content: "Stock"; }
+    td:nth-of-type(5):before { content: "Printing"; }
+    td:nth-of-type(6):before { content: "Finishing"; }
+    td:nth-of-type(7):before { content: "QTY"; }
+    td:nth-of-type(8):before { content: "PRICE"; }
+    td:nth-of-type(9):before { content: ""; }
+    td:nth-of-type(10):before { content: ""; }*/
+
+}
