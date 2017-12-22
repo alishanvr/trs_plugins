@@ -1,7 +1,7 @@
 wp-cli/core-command
 ===================
 
-Download, install, update and manage a WordPress install.
+Downloads, installs, updates, and manages a WordPress installation.
 
 [![Build Status](https://travis-ci.org/wp-cli/core-command.svg?branch=master)](https://travis-ci.org/wp-cli/core-command)
 
@@ -11,9 +11,35 @@ Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contr
 
 This package implements the following commands:
 
+### wp core
+
+Downloads, installs, updates, and manages a WordPress installation.
+
+~~~
+wp core
+~~~
+
+**EXAMPLES**
+
+    # Download WordPress core
+    $ wp core download --locale=nl_NL
+    Downloading WordPress 4.5.2 (nl_NL)...
+    md5 hash verified: c5366d05b521831dd0b29dfc386e56a5
+    Success: WordPress downloaded.
+
+    # Install WordPress
+    $ wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
+    Success: WordPress installed successfully.
+
+    # Display the WordPress version
+    $ wp core version
+    4.5.2
+
+
+
 ### wp core check-update
 
-Check for WordPress updates via Version Check API.
+Checks for WordPress updates via Version Check API.
 
 ~~~
 wp core check-update [--minor] [--major] [--field=<field>] [--fields=<fields>] [--format=<format>]
@@ -61,7 +87,7 @@ or success message when up to date.
 
 ### wp core download
 
-Download core WordPress files.
+Downloads core WordPress files.
 
 ~~~
 wp core download [--path=<path>] [--locale=<locale>] [--version=<version>] [--skip-content] [--force]
@@ -85,7 +111,7 @@ Subsequent uses of command will use the local cache if it still exists.
 		Select which version you want to download. Accepts a version number, 'latest' or 'nightly'
 
 	[--skip-content]
-		Download the latest version of WP without the default themes and plugins (en_US locale only)
+		Download WP without the default themes and plugins.
 
 	[--force]
 		Overwrites existing files, if present.
@@ -115,7 +141,7 @@ Note: if you've installed WordPress in a subdirectory, then you'll need
 to `wp option update siteurl` after `wp core install`. For instance, if
 WordPress is installed in the `/wp` directory and your domain is wp.dev,
 then you'll need to run `wp option update siteurl http://wp.dev/wp` for
-your WordPress install to function properly.
+your WordPress installation to function properly.
 
 Note: When using custom user tables (e.g. `CUSTOM_USER_TABLE`), the admin
 email and password are ignored if the user_login already exists. If the
@@ -154,7 +180,7 @@ user_login doesn't exist, a new user will be created.
 
 ### wp core is-installed
 
-Check if WordPress is installed.
+Checks if WordPress is installed.
 
 ~~~
 wp core is-installed [--network]
@@ -165,7 +191,7 @@ database tables are installed. Doesn't produce output; uses exit codes
 to communicate whether WordPress is installed.
 
 	[--network]
-		Check if this is a multisite install.
+		Check if this is a multisite installation.
 
 **EXAMPLES**
 
@@ -183,7 +209,7 @@ to communicate whether WordPress is installed.
 
 ### wp core multisite-convert
 
-Transform a single-site install into a WordPress multisite install.
+Transforms an existing single-site installation into a multisite installation.
 
 ~~~
 wp core multisite-convert [--title=<network-title>] [--base=<url-path>] [--subdomains]
@@ -194,6 +220,9 @@ to wp-config.php.
 
 For those using WordPress with Apache, remember to update the `.htaccess`
 file with the appropriate multisite rewrite rules.
+
+[Review the multisite documentation](https://codex.wordpress.org/Create_A_Network)
+for more details about how multisite works.
 
 **OPTIONS**
 
@@ -220,7 +249,7 @@ file with the appropriate multisite rewrite rules.
 
 ### wp core multisite-install
 
-Install WordPress multisite from scratch.
+Installs WordPress multisite from scratch.
 
 ~~~
 wp core multisite-install [--url=<url>] [--base=<url-path>] [--subdomains] --title=<site-title> --admin_user=<username> [--admin_password=<password>] --admin_email=<email> [--skip-email] [--skip-config]
@@ -282,7 +311,7 @@ file with the appropriate multisite rewrite rules.
 
 ### wp core update
 
-Update WordPress to a newer version.
+Updates WordPress to a newer version.
 
 ~~~
 wp core update [<zip>] [--minor] [--version=<version>] [--force] [--locale=<locale>]
@@ -319,7 +348,7 @@ update isn't actually running.
     Downloading update from https://downloads.wordpress.org/release/wordpress-4.5.2-no-content.zip...
     Unpacking the update...
     Cleaning up files...
-    No files found that need cleaned up
+    No files found that need cleaning up
     Success: WordPress updated successfully.
 
     # Update WordPress to latest version of 3.8 release
@@ -338,14 +367,14 @@ update isn't actually running.
     Updating to version 3.1 (en_US)...
     Downloading update from https://wordpress.org/wordpress-3.1.zip...
     Unpacking the update...
-    Warning: Failed to fetch checksums. Please cleanup files manually.
+    Warning: Checksums not available for WordPress 3.1/en_US. Please cleanup files manually.
     Success: WordPress updated successfully.
 
 
 
 ### wp core update-db
 
-Run the WordPress database update procedure.
+Runs the WordPress database update procedure.
 
 ~~~
 wp core update-db [--network] [--dry-run]
@@ -372,7 +401,7 @@ wp core update-db [--network] [--dry-run]
 
 ### wp core version
 
-Display the WordPress version.
+Displays the WordPress version.
 
 ~~~
 wp core version [--extra]
@@ -428,7 +457,7 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: http://wp-cli.org/#support
+Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 
 *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

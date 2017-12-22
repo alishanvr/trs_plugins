@@ -1,6 +1,6 @@
 {
     "name": "wp-cli/cron-command",
-    "description": "Manage WP-Cron events and schedules.",
+    "description": "Tests, runs, and deletes WP-Cron events; manages WP-Cron schedules.",
     "type": "wp-cli-package",
     "homepage": "https://github.com/wp-cli/cron-command",
     "support": {
@@ -31,11 +31,14 @@
         },
         "bundled": true,
         "commands": [
+            "cron",
             "cron test",
+            "cron event",
             "cron event delete",
             "cron event list",
             "cron event run",
             "cron event schedule",
+            "cron schedule",
             "cron schedule list"
         ]
     }

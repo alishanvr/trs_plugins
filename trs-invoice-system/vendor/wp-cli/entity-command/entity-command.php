@@ -30,7 +30,7 @@ WP_CLI::add_command( 'site', 'Site_Command' );
 WP_CLI::add_command( 'site option', 'Site_Option_Command', array(
 	'before_invoke' => function() {
 		if ( !is_multisite() ) {
-			WP_CLI::error( 'This is not a multisite install.' );
+			WP_CLI::error( 'This is not a multisite installation.' );
 		}
 	}
 ) );
@@ -54,3 +54,7 @@ WP_CLI::add_command( 'user session', 'User_Session_Command', array(
 );
 
 WP_CLI::add_command( 'user term', 'User_Term_Command' );
+
+if ( class_exists( 'WP_CLI\Dispatcher\CommandNamespace' ) ) {
+	WP_CLI::add_command( 'network', 'Network_Namespace' );
+}

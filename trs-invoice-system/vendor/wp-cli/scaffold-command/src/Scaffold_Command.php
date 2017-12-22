@@ -5,7 +5,7 @@ use WP_CLI\Process;
 use WP_CLI\Inflector;
 
 /**
- * Generate code for post types, taxonomies, plugins, child themes, etc.
+ * Generates code for post types, taxonomies, plugins, child themes, etc.
  *
  * ## EXAMPLES
  *
@@ -27,7 +27,7 @@ use WP_CLI\Inflector;
 class Scaffold_Command extends WP_CLI_Command {
 
 	/**
-	 * Generate PHP code for registering a custom post type.
+	 * Generates PHP code for registering a custom post type.
 	 *
 	 * ## OPTIONS
 	 *
@@ -84,7 +84,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Generate PHP code for registering a custom taxonomy.
+	 * Generates PHP code for registering a custom taxonomy.
 	 *
 	 * ## OPTIONS
 	 *
@@ -150,6 +150,11 @@ class Scaffold_Command extends WP_CLI_Command {
 
 		$vars = $this->extract_args( $assoc_args, $defaults );
 
+		$dashicon = $this->extract_dashicon( $assoc_args );
+		if ( $dashicon ) {
+			$vars['dashicon'] = $dashicon;
+		}
+
 		$vars['slug'] = $slug;
 
 		$vars['textdomain'] = $this->get_textdomain( $vars['textdomain'], $control_args );
@@ -160,8 +165,7 @@ class Scaffold_Command extends WP_CLI_Command {
 		$vars['label_plural']         = $this->pluralize( $vars['label'] );
 		$vars['label_plural_ucfirst'] = ucfirst( $vars['label_plural'] );
 
-		// We use the machine name for function declarations
-		$machine_name        = preg_replace( '/-/', '_', $slug );
+		$machine_name        = $this->generate_machine_name( $slug );
 		$machine_name_plural = $this->pluralize( $slug );
 
 		list( $raw_template, $extended_template ) = $templates;
@@ -197,7 +201,119 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Generate starter code for a theme based on _s.
+	 * Generates PHP, JS and CSS code for registering a Gutenberg block for a plugin or theme.
+	 *
+	 * Blocks are the fundamental element of the Gutenberg editor. They are the primary way in which plugins and themes can register their own functionality and extend the capabilities of the editor.
+	 * Visit https://wordpress.org/gutenberg/handbook/block-api/ to learn more about Block API.
+	 *
+	 * When you scaffold a block you must use either the theme or plugin option.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <slug>
+	 * : The internal name of the block.
+	 *
+	 * [--title=<title>]
+	 * : The display title for your block.
+	 *
+	 * [--dashicon=<dashicon>]
+	 * : The dashicon to make it easier to identify your block.
+	 *
+	 * [--category=<category>]
+	 * : The category name to help users browse and discover your block.
+	 * ---
+	 * default: widgets
+	 * options:
+	 *   - common
+	 *   - embed
+	 *   - formatting
+	 *   - layout
+	 *   - reusable-blocks
+	 *   - widgets
+	 *
+	 * [--textdomain=<textdomain>]
+	 * : The textdomain to use for the labels.
+	 *
+	 * [--theme]
+	 * : Create files in the active theme directory. Specify a theme with `--theme=<theme>` to have the file placed in that theme.
+	 *
+	 * [--plugin=<plugin>]
+	 * : Create files in the given plugin's directory.
+	 *
+	 * [--force]
+	 * : Overwrite files that already exist.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Generate a 'movie' block for the 'simple-life' theme
+	 *     $ wp scaffold block movie --title="Movie block" --theme=simple-life
+	 *      Success: Created block 'Movie block'.
+	 *
+	 *     # Generate a 'movie' block for the 'movies' plugin
+	 *     $ wp scaffold block movie --title="Movie block" --plugin=movies
+	 *     Success: Created block 'Movie block'.
+	 *
+	 *     # Create a new plugin and add two blocks
+	 *     # Create plugin called books
+	 *     $ wp scaffold plugin books
+	 *     # Add a block called book to plugin books
+	 *     $ wp scaffold block book --title="Book" --plugin=books
+	 *     # Add a second block to plugin called books.
+	 *     $ wp scaffold block books --title="Book List" --plugin=books
+	 *
+	 * @subcommand block
+	 */
+	public function block( $args, $assoc_args ) {
+
+		$slug = $args[0];
+		if ( ! preg_match( '/^[a-z][a-z0-9\-]*$/', $slug ) ) {
+			WP_CLI::error( "Invalid block slug specified. Block slugs can contain only lowercase alphanumeric characters or dashes, and start with a letter." );
+		}
+
+		$defaults = array(
+			'title'      => str_replace( '-', ' ', $slug ),
+			'category'   => 'widgets',
+			'textdomain' => '',
+		);
+		$data     = $this->extract_args( $assoc_args, $defaults );
+
+		$data['slug']          = $slug;
+		$data['title_ucfirst'] = ucfirst( $data['title'] );
+
+		$dashicon = $this->extract_dashicon( $assoc_args );
+		if ( $dashicon ) {
+			$data['dashicon'] = $dashicon;
+		}
+
+		$control_args = $this->extract_args( $assoc_args, array(
+			'force'  => false,
+			'plugin' => false,
+			'theme'  => false,
+		) );
+
+		$data['namespace'] = $control_args['plugin'] ? $control_args['plugin'] : $this->get_theme_name( $control_args['theme'] );
+		$data['textdomain'] = $this->get_textdomain( $data['textdomain'], $control_args );
+		$data['machine_name'] = $this->generate_machine_name( $slug );
+
+		$block_dir = $this->get_output_path( $control_args, "/blocks" );
+		if ( ! $block_dir ) {
+			WP_CLI::error( "No plugin or theme selected." );
+		}
+
+		$files_written = $this->create_files( array(
+			"$block_dir/$slug.php" => self::mustache_render( 'block-php.mustache', $data ),
+			"$block_dir/$slug/block.js" => self::mustache_render( 'block-block-js.mustache', $data ),
+			"$block_dir/$slug/editor.css" => self::mustache_render( 'block-editor-css.mustache', $data ),
+		), $control_args['force'] );
+		$this->log_whether_files_written(
+			$files_written,
+			$skip_message = 'All block files were skipped.',
+			$success_message = "Created block '{$data['title_ucfirst']}'."
+		);
+	}
+
+	/**
+	 * Generates starter code for a theme based on _s.
 	 *
 	 * See the [Underscores website](https://underscores.me/) for more details.
 	 *
@@ -318,7 +434,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Generate child theme based on an existing theme.
+	 * Generates child theme based on an existing theme.
 	 *
 	 * Creates a child theme folder with `functions.php` and `style.css` files.
 	 *
@@ -414,6 +530,9 @@ class Scaffold_Command extends WP_CLI_Command {
 			} else {
 				$path = get_stylesheet_directory();
 			}
+			if ( ! is_dir( $path ) ) {
+				WP_CLI::error( "Can't find '$theme' theme." );
+			}
 		} elseif ( $assoc_args['plugin'] ) {
 			$plugin = $assoc_args['plugin'];
 			$path   = WP_PLUGIN_DIR . '/' . $plugin;
@@ -430,7 +549,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Generate starter code for a plugin.
+	 * Generates starter code for a plugin.
 	 *
 	 * The following files are always generated:
 	 *
@@ -571,7 +690,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Generate files needed for running PHPUnit tests in a plugin.
+	 * Generates files needed for running PHPUnit tests in a plugin.
 	 *
 	 * The following files are generated by default:
 	 *
@@ -623,7 +742,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Generate files needed for running PHPUnit tests in a theme.
+	 * Generates files needed for running PHPUnit tests in a theme.
 	 *
 	 * The following files are generated by default:
 	 *
@@ -862,6 +981,20 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Extracts dashicon name when provided or return null otherwise.
+	 *
+	 * @param array $assoc_args
+	 * @return string|null
+	 */
+	private function extract_dashicon( $assoc_args ) {
+		$dashicon = \WP_CLI\Utils\get_flag_value( $assoc_args, 'dashicon' );
+		if ( ! $dashicon ) {
+			return null;
+		}
+		return preg_replace( '/dashicon(-|s-)/', '', $dashicon );
+	}
+
+	/**
 	 * If you're writing your files to your theme directory your textdomain also needs to be the same as your theme.
 	 * Same goes for when plugin is being used.
 	 */
@@ -871,7 +1004,7 @@ class Scaffold_Command extends WP_CLI_Command {
 		}
 
 		if ( $args['theme'] ) {
-			return strtolower( wp_get_theme()->template );
+			return $this->get_theme_name( $args['theme'] );
 		}
 
 		if ( $args['plugin'] && true !== $args['plugin'] ) {
@@ -882,7 +1015,17 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Pluralize noun
+	 * Generates the machine name for function declarations.
+	 *
+	 * @param string $slug Slug name to convert.
+	 * @return string
+	 */
+	private function generate_machine_name( $slug ) {
+		return str_replace( '-', '_', $slug );
+	}
+
+	/**
+	 * Pluralizes a noun.
 	 *
 	 * @see    Inflector::pluralize()
 	 * @param  string $word Word to be pluralized.
@@ -907,7 +1050,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Create the themes directory if it doesn't already exist
+	 * Creates the themes directory if it doesn't already exist.
 	 */
 	protected function maybe_create_themes_dir() {
 
@@ -919,7 +1062,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Create the plugins directory if it doesn't already exist
+	 * Creates the plugins directory if it doesn't already exist.
 	 */
 	protected function maybe_create_plugins_dir() {
 
@@ -930,7 +1073,7 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Initialize WP Filesystem
+	 * Initializes WP_Filesystem.
 	 */
 	protected function init_wp_filesystem() {
 		global $wp_filesystem;
@@ -940,14 +1083,14 @@ class Scaffold_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Localize path to template
+	 * Localizes the template path.
 	 */
 	private static function mustache_render( $template, $data = array() ) {
 		return Utils\mustache_render( dirname( dirname( __FILE__ ) ) . '/templates/' . $template, $data );
 	}
 
 	/**
-	 * Get template path based on installation type
+	 * Gets the template path based on installation type.
 	 */
 	private static function get_template_path( $template ) {
 		$command_root = Utils\phar_safe_path( dirname( __DIR__ ) );
@@ -990,5 +1133,18 @@ class Scaffold_Command extends WP_CLI_Command {
 		}
 
 		return implode( '/', $output );
+	}
+
+	/**
+	 * Gets an active theme's name when true provided or the same name otherwise.
+	 *
+	 * @param string|bool $theme Theme name or true.
+	 * @return string
+	 */
+	private function get_theme_name( $theme ) {
+		if ( true === $theme ) {
+			$theme = wp_get_theme()->template;
+		}
+		return strtolower( $theme );
 	}
 }

@@ -15,10 +15,14 @@ use Patchwork\Utils;
 use Patchwork\Stack;
 use Patchwork\Config;
 use Patchwork\Exceptions;
+use Patchwork\CodeManipulation;
 use Patchwork\CodeManipulation\Actions\RedefinitionOfLanguageConstructs;
+use Patchwork\CodeManipulation\Actions\RedefinitionOfNew;
 
 const INTERNAL_REDEFINITION_NAMESPACE = 'Patchwork\Redefinitions';
 const EVALUATED_CODE_FILE_NAME_SUFFIX = '/\(\d+\) : eval\(\)\'d code$/';
+const INSTANTIATOR_NAMESPACE = 'Patchwork\Instantiators';
+const INSTANTIATOR_DEFAULT_ARGUMENT = 'Patchwork\CallRerouting\INSTANTIATOR_DEFAULT_ARGUMENT';
 
 const INTERNAL_STUB_CODE = '
     namespace @ns_for_redefinitions;
@@ -29,6 +33,37 @@ const INTERNAL_STUB_CODE = '
         }
         @interceptor;
         return \call_user_func_array("@name", $__pwArgs);
+    }
+';
+
+const INSTANTIATOR_CODE = '
+    namespace @namespace;
+    class @instantiator {
+        function instantiate(@parameters) {
+            $__pwArgs = \debug_backtrace()[0]["args"];
+            foreach ($__pwArgs as $__pwOffset => $__pwValue) {
+                if ($__pwValue === \Patchwork\CallRerouting\INSTANTIATOR_DEFAULT_ARGUMENT) {
+                    unset($__pwArgs[$__pwOffset]);
+                }
+            }
+            switch (count($__pwArgs)) {
+                case 0:
+                    return new \@class;
+                case 1:
+                    return new \@class($__pwArgs[0]);
+                case 2:
+                    return new \@class($__pwArgs[0], $__pwArgs[1]);
+                case 3:
+                    return new \@class($__pwArgs[0], $__pwArgs[1], $__pwArgs[2]);
+                case 4:
+                    return new \@class($__pwArgs[0], $__pwArgs[1], $__pwArgs[2], $__pwArgs[3]);
+                case 5:
+                    return new \@class($__pwArgs[0], $__pwArgs[1], $__pwArgs[2], $__pwArgs[3], $__pwArgs[4]);
+                default:
+                    $__pwReflector = new \ReflectionClass(\'@class\');
+                    return $__pwReflector->newInstanceArgs($__pwArgs);
+            }
+        }
     }
 ';
 
@@ -218,8 +253,12 @@ function connectMethod($function, callable $target, Handle $handle = null)
 
 function connectInstantiation($class, callable $target, Handle $handle = null)
 {
+    if (!Config\isNewKeywordRedefinable()) {
+        throw new Exceptions\NewKeywordNotRedefinable;
+    }
     $handle = $handle ?: new Handle;
-    $routes = &State::$routes[$class]['new'];
+    $class = strtr($class, ['\\' => '__']);
+    $routes = &State::$routes["Patchwork\\Instantiators\\$class"]['instantiate'];
     $offset = Utils\append($routes, [$target, $handle]);
     $handle->addReference($routes[$offset]);
     return $handle;
@@ -250,11 +289,21 @@ function dispatch($class, $calledClass, $method, $frame, &$result, array $args =
 {
     $isInternalStub = strpos($method, INTERNAL_REDEFINITION_NAMESPACE) === 0;
     $isLanguageConstructStub = strpos($method, RedefinitionOfLanguageConstructs\LANGUAGE_CONSTRUCT_PREFIX) === 0;
+    $isInstantiator = strpos($method, INSTANTIATOR_NAMESPACE) === 0;
     if ($isInternalStub && !$isLanguageConstructStub && $args === null) {
         # Mind the namespace-of-origin argument
         $trace = debug_backtrace();
         $args = array_reverse($trace)[$frame - 1]['args'];
         array_shift($args);
+    }
+    if ($isInstantiator) {
+        $trace = debug_backtrace();
+        $args = $args ?: array_reverse($trace)[$frame - 1]['args'];
+        foreach ($args as $offset => $value) {
+            if ($value === INSTANTIATOR_DEFAULT_ARGUMENT) {
+                unset($args[$offset]);
+            }
+        }
     }
     $success = false;
     Stack\pushFor($frame, $calledClass, function() use ($class, $method, &$result, &$success) {
@@ -379,14 +428,14 @@ function createStubsForInternals()
             continue;
         }
         $signature = ['$__pwNamespace'];
-        foreach ((new \ReflectionFunction($name))->getParameters() as $argument) {
+        foreach ((new \ReflectionFunction($name))->getParameters() as $offset => $argument) {
             $formal = '';
             if ($argument->isPassedByReference()) {
                 $formal .= '&';
             }
             $formal .= '$' . $argument->getName();
             $isVariadic = is_callable([$argument, 'isVariadic']) ? $argument->isVariadic() : false;
-            if ($argument->isOptional() || $isVariadic) {
+            if ($argument->isOptional() || $isVariadic || ($name === 'define' && $offset === 2)) {
                 continue;
             }
             $signature[] = $formal;
@@ -503,15 +552,12 @@ function translateIfLanguageConstruct($callable)
     }
 }
 
-/**
- * @since 2.1.0
- */
-function dispatchInstantiation($class, $calledClass, array $args)
+function resolveClassToInstantiate($class, $calledClass)
 {
     $pieces = explode('\\', $class);
     $last = array_pop($pieces);
     if (in_array($last, ['self', 'static', 'parent'])) {
-        $frame = debug_backtrace()[1];
+        $frame = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[2];
         if ($last == 'self') {
             $class = $frame['class'];
         } elseif ($last == 'parent') {
@@ -520,14 +566,29 @@ function dispatchInstantiation($class, $calledClass, array $args)
             $class = $calledClass;
         }
     }
-    $class = ltrim($class, '\\');
-    $success = dispatch($class, $calledClass ?: $class, 'new', count(debug_backtrace()) - 1, $result, $args);
-    if ($success) {
-        return $result;
-    } else {
-        $reflection = new \ReflectionClass($class);
-        return $reflection->newInstanceArgs($args);
+    return ltrim($class, '\\');
+}
+
+function getInstantiator($class, $calledClass)
+{
+    $namespace = INSTANTIATOR_NAMESPACE;
+    $class = resolveClassToInstantiate($class, $calledClass);
+    $adaptedName = strtr($class, ['\\' => '__']);
+    if (!class_exists("$namespace\\$adaptedName")) {
+        $constructor = (new \ReflectionClass($class))->getConstructor();
+        list($parameters, $arguments) = Utils\getParameterAndArgumentLists($constructor);
+        $code = strtr(INSTANTIATOR_CODE, [
+            '@namespace'    => INSTANTIATOR_NAMESPACE,
+            '@instantiator' => $adaptedName,
+            '@class'        => $class,
+            '@parameters'   => $parameters,
+        ]);
+        RedefinitionOfNew\suspendFor(function() use ($code) {
+            eval(CodeManipulation\transformForEval($code));
+        });
     }
+    $instantiator = "$namespace\\$adaptedName";
+    return new $instantiator;
 }
 
 class State

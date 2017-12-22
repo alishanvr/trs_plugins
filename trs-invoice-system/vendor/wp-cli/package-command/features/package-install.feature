@@ -28,7 +28,7 @@ Feature: Install WP-CLI packages
 	    "description": "This is a dummy package we will install instead of actually installing the real package. This prevents the test from hanging indefinitely for some reason, even though it passes. The 'name' must match a real package as it is checked against the package index."
 	  }
 	  """
-    When I run `WP_CLI_PACKAGES_DIR=. wp package install wp-cli/restful --debug`
+    When I run `WP_CLI_PACKAGES_DIR=. wp package install wp-cli/restful`
     Then STDOUT should contain:
 	  """
 	  Updating package index repository url...
@@ -122,16 +122,22 @@ Feature: Install WP-CLI packages
 
   @github-api
   Scenario: Install a package from a Git URL
-    When I run `wp package install git@github.com:wp-cli-test/repository-name.git`
+    Given an empty directory
+
+    When I try `wp package install git@github.com:wp-cli-test/repository-name.git`
+    Then the return code should be 0
+    And STDERR should contain:
+      """
+      Warning: Package name mismatch...Updating from git name 'wp-cli-test/repository-name' to composer.json name 'wp-cli-test/package-name'.
+      """
     And STDOUT should contain:
       """
-      Package name mismatch...Updating the name with correct value.
+      Success: Package installed.
       """
     And the {PACKAGE_PATH}composer.json file should contain:
       """
       "wp-cli-test/package-name": "dev-master"
       """
-    Given an empty directory
 
     When I try `wp package install git@github.com:wp-cli.git`
     Then STDERR should be:
@@ -188,7 +194,79 @@ Feature: Install WP-CLI packages
       wp-cli/google-sitemap-generator-cli
       """
 
-  @github-api @shortened
+  @github-api
+  Scenario: Install a package from a Git URL with mixed-case git name but lowercase composer.json name
+    Given an empty directory
+
+    When I try `wp package install https://github.com/CapitalWPCLI/examplecommand.git`
+    Then the return code should be 0
+    And STDERR should contain:
+      """
+      Warning: Package name mismatch...Updating from git name 'CapitalWPCLI/examplecommand' to composer.json name 'capitalwpcli/examplecommand'.
+      """
+    And STDOUT should contain:
+      """
+      Installing package capitalwpcli/examplecommand (dev-master)
+      Updating {PACKAGE_PATH}composer.json to require the package...
+      Registering https://github.com/CapitalWPCLI/examplecommand.git as a VCS repository...
+      Using Composer to install the package...
+      """
+    And STDOUT should contain:
+      """
+      Success: Package installed.
+      """
+    And the {PACKAGE_PATH}composer.json file should contain:
+      """
+      "capitalwpcli/examplecommand"
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      "CapitalWPCLI/examplecommand"
+      """
+
+    When I run `wp package list --fields=name`
+    Then STDOUT should be a table containing rows:
+      | name                        |
+      | capitalwpcli/examplecommand |
+
+    When I run `wp hello-world`
+    Then STDOUT should contain:
+      """
+      Success: Hello world.
+      """
+
+  @github-api
+  Scenario: Install a package from a Git URL with mixed-case git name and the same mixed-case composer.json name
+    Given an empty directory
+
+    When I run `wp package install https://github.com/gitlost/TestMixedCaseCommand.git`
+    Then STDERR should be empty
+    And STDOUT should contain:
+      """
+      Success: Package installed.
+      """
+    And the {PACKAGE_PATH}composer.json file should contain:
+      """
+      "gitlost/TestMixedCaseCommand"
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      mixed
+      """
+
+    When I run `wp package list --fields=name`
+    Then STDOUT should be a table containing rows:
+      | name                         |
+      | gitlost/TestMixedCaseCommand |
+
+    When I run `wp TestMixedCaseCommand`
+    Then STDOUT should contain:
+      """
+      Success: Test Mixed Case Command Name
+      """
+
+  # Current releases of schlessera/test-command are PHP 5.5 dependent.
+  @github-api @shortened @require-php-5.5
   Scenario: Install a package from Git using a shortened package identifier
     Given an empty directory
 
@@ -197,7 +275,7 @@ Feature: Install WP-CLI packages
       """
       Installing package schlessera/test-command (dev-master)
       Updating {PACKAGE_PATH}composer.json to require the package...
-      Registering git@github.com:schlessera/test-command.git as a VCS repository...
+      Registering https://github.com/schlessera/test-command.git as a VCS repository...
       Using Composer to install the package...
       """
     And STDOUT should contain:
@@ -232,7 +310,8 @@ Feature: Install WP-CLI packages
       schlessera/test-command
       """
 
-  @github-api @shortened
+  # Current releases of schlessera/test-command are PHP 5.5 dependent.
+  @github-api @shortened @require-php-5.5
   Scenario: Install a package from Git using a shortened package identifier with a version requirement
     Given an empty directory
 
@@ -241,7 +320,7 @@ Feature: Install WP-CLI packages
       """
       Installing package schlessera/test-command (^0)
       Updating {PACKAGE_PATH}composer.json to require the package...
-      Registering git@github.com:schlessera/test-command.git as a VCS repository...
+      Registering https://github.com/schlessera/test-command.git as a VCS repository...
       Using Composer to install the package...
       """
     And STDOUT should contain:
@@ -276,7 +355,8 @@ Feature: Install WP-CLI packages
       schlessera/test-command
       """
 
-  @github-api @shortened
+  # Current releases of schlessera/test-command are PHP 5.5 dependent.
+  @github-api @shortened @require-php-5.5
   Scenario: Install a package from Git using a shortened package identifier with a specific version
     Given an empty directory
 
@@ -285,7 +365,7 @@ Feature: Install WP-CLI packages
       """
       Installing package schlessera/test-command (0.1.0)
       Updating {PACKAGE_PATH}composer.json to require the package...
-      Registering git@github.com:schlessera/test-command.git as a VCS repository...
+      Registering https://github.com/schlessera/test-command.git as a VCS repository...
       Using Composer to install the package...
       """
     And STDOUT should contain:
@@ -320,7 +400,8 @@ Feature: Install WP-CLI packages
       schlessera/test-command
       """
 
-  @github-api @shortened
+  # Current releases of schlessera/test-command are PHP 5.5 dependent.
+  @github-api @shortened @require-php-5.5
   Scenario: Install a package from Git using a shortened package identifier and a specific commit hash
     Given an empty directory
 
@@ -329,7 +410,7 @@ Feature: Install WP-CLI packages
       """
       Installing package schlessera/test-command (dev-master#8e99bba16a65a3cde7405178a6badbb49349f554)
       Updating {PACKAGE_PATH}composer.json to require the package...
-      Registering git@github.com:schlessera/test-command.git as a VCS repository...
+      Registering https://github.com/schlessera/test-command.git as a VCS repository...
       Using Composer to install the package...
       """
     And STDOUT should contain:
@@ -364,7 +445,8 @@ Feature: Install WP-CLI packages
       schlessera/test-command
       """
 
-  @github-api @shortened
+  # Current releases of schlessera/test-command are PHP 5.5 dependent.
+  @github-api @shortened @require-php-5.5
   Scenario: Install a package from Git using a shortened package identifier and a branch
     Given an empty directory
 
@@ -373,7 +455,7 @@ Feature: Install WP-CLI packages
       """
       Installing package schlessera/test-command (dev-custom-branch)
       Updating {PACKAGE_PATH}composer.json to require the package...
-      Registering git@github.com:schlessera/test-command.git as a VCS repository...
+      Registering https://github.com/schlessera/test-command.git as a VCS repository...
       Using Composer to install the package...
       """
     And STDOUT should contain:
@@ -408,9 +490,107 @@ Feature: Install WP-CLI packages
       schlessera/test-command
       """
 
+  @github-api
+  Scenario: Install a package from the wp-cli package index with a mixed-case name
+    Given an empty directory
+
+    # Install and uninstall with case-sensitive name
+    When I run `wp package install GeekPress/wp-rocket-cli`
+    Then STDERR should be empty
+    And STDOUT should contain:
+      """
+      Installing package GeekPress/wp-rocket-cli (dev-master)
+      Updating {PACKAGE_PATH}composer.json to require the package...
+      Using Composer to install the package...
+      """
+    And STDOUT should contain:
+      """
+      Success: Package installed.
+      """
+    And the {PACKAGE_PATH}composer.json file should contain:
+      """
+      GeekPress/wp-rocket-cli
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      geek
+      """
+
+    When I run `wp package list --fields=name`
+    Then STDOUT should be a table containing rows:
+      | name                    |
+      | GeekPress/wp-rocket-cli |
+
+    When I run `wp help rocket`
+    Then STDOUT should contain:
+      """
+      wp rocket
+      """
+
+    When I run `wp package uninstall GeekPress/wp-rocket-cli`
+    Then STDOUT should contain:
+      """
+      Removing require statement from {PACKAGE_PATH}composer.json
+      """
+    And STDOUT should contain:
+      """
+      Success: Uninstalled package.
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      rocket
+      """
+
+    # Install with lowercase name (for BC - no warning) and uninstall with lowercase name (for BC and convenience)
+    When I run `wp package install geekpress/wp-rocket-cli`
+    Then STDERR should be empty
+    And STDOUT should contain:
+      """
+      Installing package GeekPress/wp-rocket-cli (dev-master)
+      Updating {PACKAGE_PATH}composer.json to require the package...
+      Using Composer to install the package...
+      """
+    And STDOUT should contain:
+      """
+      Success: Package installed.
+      """
+    And the {PACKAGE_PATH}composer.json file should contain:
+      """
+      GeekPress/wp-rocket-cli
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      geek
+      """
+
+    When I run `wp package list --fields=name`
+    Then STDOUT should be a table containing rows:
+      | name                    |
+      | GeekPress/wp-rocket-cli |
+
+    When I run `wp help rocket`
+    Then STDOUT should contain:
+      """
+      wp rocket
+      """
+
+    When I run `wp package uninstall geekpress/wp-rocket-cli`
+    Then STDOUT should contain:
+      """
+      Removing require statement from {PACKAGE_PATH}composer.json
+      """
+    And STDOUT should contain:
+      """
+      Success: Uninstalled package.
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      rocket
+      """
+
   Scenario: Install a package in a local zip
     Given an empty directory
-    And I run `wget -O google-sitemap-generator-cli.zip https://github.com/wp-cli/google-sitemap-generator-cli/archive/master.zip`
+    And I run `wget -q -O google-sitemap-generator-cli.zip https://github.com/wp-cli/google-sitemap-generator-cli/archive/master.zip`
 
     When I run `wp package install google-sitemap-generator-cli.zip`
     Then STDOUT should contain:
@@ -452,13 +632,69 @@ Feature: Install WP-CLI packages
       wp-cli/google-sitemap-generator-cli
       """
 
+  @github-api
+  Scenario: Install a package from Git using a shortened mixed-case package identifier but lowercase composer.json name
+    Given an empty directory
+
+    When I try `wp package install CapitalWPCLI/examplecommand`
+    Then the return code should be 0
+    And STDERR should contain:
+      """
+      Warning: Package name mismatch...Updating from git name 'CapitalWPCLI/examplecommand' to composer.json name 'capitalwpcli/examplecommand'.
+      """
+    And STDOUT should contain:
+      """
+      Installing package capitalwpcli/examplecommand (dev-master)
+      Updating {PACKAGE_PATH}composer.json to require the package...
+      Registering https://github.com/CapitalWPCLI/examplecommand.git as a VCS repository...
+      Using Composer to install the package...
+      """
+    And STDOUT should contain:
+      """
+      Success: Package installed.
+      """
+    And the {PACKAGE_PATH}composer.json file should contain:
+      """
+      "capitalwpcli/examplecommand"
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      "CapitalWPCLI/examplecommand"
+      """
+
+    When I run `wp package list --fields=name`
+    Then STDOUT should be a table containing rows:
+      | name                        |
+      | capitalwpcli/examplecommand |
+
+    When I run `wp hello-world`
+    Then STDOUT should contain:
+      """
+      Success: Hello world.
+      """
+
+    When I run `wp package uninstall capitalwpcli/examplecommand`
+    Then STDOUT should contain:
+      """
+      Removing require statement from {PACKAGE_PATH}composer.json
+      """
+    And STDOUT should contain:
+      """
+      Success: Uninstalled package.
+      """
+    And the {PACKAGE_PATH}composer.json file should not contain:
+      """
+      capital
+      """
+
+  @github-api
   Scenario: Install a package from a remote ZIP
     Given an empty directory
 
     When I try `wp package install https://github.com/wp-cli/google-sitemap-generator.zip`
     Then STDERR should be:
       """
-      Error: Couldn't download package.
+      Error: Couldn't download package from 'https://github.com/wp-cli/google-sitemap-generator.zip' (HTTP code 404).
       """
 
     When I run `wp package install https://github.com/wp-cli/google-sitemap-generator-cli/archive/master.zip`
@@ -773,3 +1009,66 @@ Feature: Install WP-CLI packages
       """
       "version": "0.23.0-alpha",
       """
+
+  Scenario: Try to install bad packages
+    Given an empty directory
+    And a package-dir/composer.json file:
+      """
+      {
+      }
+      """
+    And a package-dir-bad-composer/composer.json file:
+      """
+      {
+      """
+    And a package-dir/zero.zip file:
+      """
+      """
+
+    When I try `wp package install https://github.com/non-existent-git-user-asdfasdf/non-existent-git-repo-asdfasdf.git`
+    Then the return code should be 1
+    And STDERR should be:
+      """
+      Error: Couldn't download composer.json file from 'https://raw.githubusercontent.com/non-existent-git-user-asdfasdf/non-existent-git-repo-asdfasdf/master/composer.json' (HTTP code 404).
+      """
+    And STDOUT should be empty
+
+    When I try `wp package install non-existent-git-user-asdfasdf/non-existent-git-repo-asdfasdf`
+    Then the return code should be 1
+    And STDERR should be:
+      """
+      Error: Invalid package: shortened identifier 'non-existent-git-user-asdfasdf/non-existent-git-repo-asdfasdf' not found.
+      """
+    And STDOUT should be empty
+
+    When I try `wp package install https://example.com/non-existent-zip-asdfasdf.zip`
+    Then the return code should be 1
+    And STDERR should be:
+      """
+      Error: Couldn't download package from 'https://example.com/non-existent-zip-asdfasdf.zip' (HTTP code 404).
+      """
+    And STDOUT should be empty
+
+    When I try `wp package install package-dir-bad-composer`
+    Then the return code should be 1
+    And STDERR should be:
+      """
+      Error: Invalid package: failed to parse composer.json file '{RUN_DIR}/package-dir-bad-composer/composer.json' as json.
+      """
+    And STDOUT should be empty
+
+    When I try `wp package install package-dir`
+    Then the return code should be 1
+    And STDERR should be:
+      """
+      Error: Invalid package: no name in composer.json file '{RUN_DIR}/package-dir/composer.json'.
+      """
+    And STDOUT should be empty
+
+    When I try `wp package install package-dir/zero.zip`
+    Then the return code should be 1
+    And STDERR should be:
+      """
+      Error: ZipArchive failed to unzip 'package-dir/zero.zip': Not a zip archive (19).
+      """
+    And STDOUT should be empty

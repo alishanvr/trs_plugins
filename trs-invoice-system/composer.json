@@ -1,6 +1,23 @@
 {
-  "require": {
-    "paypal/rest-api-sdk-php": "*"
+  "name": "TRS Invoice System",
+  "description": "Simple invoice system for WooCoomerce. PayPal Integrated...",
+  "type": "plugin",
+  "license": "GPL-3.0+",
+  "authors": [
+    {
+      "name": "Ali Shan",
+      "email": "alishanvr@gmail.com",
+      "homepage": "http://www.therightsol.com",
+      "role": "Software Engineer "
+    }
+  ],
+  "support": {
+    "email": "info@therightsol.com"
+  },
+  "config": {
+    "platform": {
+      "php": "5.6"
+    }
   },
   "autoload": {
     "psr-4": {
@@ -9,6 +26,11 @@
       "CommonInvoiceSystem\\": "src/common/"
     },
     "files": ["src/common/functions.php"]
+  },
+  "require": {
+    "php" : ">=5.6",
+    "ext-mbstring": "*",
+    "paypal/rest-api-sdk-php": "*"
   },
   "require-dev": {
     "lucatume/wp-browser": "^1.21"

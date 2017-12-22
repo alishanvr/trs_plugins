@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Performs site-wide operations on a multisite install.
+ * Creates, deletes, empties, moderates, and lists one or more sites on a multisite installation.
  *
  * ## EXAMPLES
  *
@@ -136,7 +136,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Empty a site of its content (posts, comments, terms, and meta).
+	 * Empties a site of its content (posts, comments, terms, and meta).
 	 *
 	 * Truncates posts, comments, and terms tables to empty a site of its
 	 * content. Doesn't affect site configuration (options) or users.
@@ -195,10 +195,11 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 			);
 
 			$files_to_unlink = $directories_to_delete = array();
+			$is_main_site = is_main_site();
 			foreach ( $files as $fileinfo ) {
 				$realpath = $fileinfo->getRealPath();
 				// Don't clobber subsites when operating on the main site
-				if ( is_main_site() && false !== stripos( $realpath, '/sites/' ) ) {
+				if ( $is_main_site && false !== stripos( $realpath, '/sites/' ) ) {
 					continue;
 				}
 				if ( $fileinfo->isDir() ) {
@@ -211,16 +212,18 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 				unlink( $file );
 			}
 			foreach( $directories_to_delete as $directory ) {
-				rmdir( $directory );
+				// Directory could be main sites directory '/sites' which may be non-empty.
+				@rmdir( $directory ); // @codingStandardsIgnoreLine
 			}
-			rmdir( $upload_dir['basedir'] );
+			// May be non-empty if '/sites' still around.
+			@rmdir( $upload_dir['basedir'] ); // @codingStandardsIgnoreLine
 		}
 
 		WP_CLI::success( "The site at '" . site_url() . "' was emptied." );
 	}
 
 	/**
-	 * Delete a site in a multisite install.
+	 * Deletes a site in a multisite installation.
 	 *
 	 * ## OPTIONS
 	 *
@@ -244,7 +247,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 */
 	function delete( $args, $assoc_args ) {
 		if ( !is_multisite() ) {
-			WP_CLI::error( 'This is not a multisite install.' );
+			WP_CLI::error( 'This is not a multisite installation.' );
 		}
 
 		if ( isset( $assoc_args['slug'] ) ) {
@@ -277,7 +280,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Create a site in a multisite install.
+	 * Creates a site in a multisite installation.
 	 *
 	 * ## OPTIONS
 	 *
@@ -306,7 +309,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 */
 	public function create( $_, $assoc_args ) {
 		if ( !is_multisite() ) {
-			WP_CLI::error( 'This is not a multisite install.' );
+			WP_CLI::error( 'This is not a multisite installation.' );
 		}
 
 		global $wpdb, $current_site;
@@ -407,7 +410,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Get network data for a given id.
+	 * Gets network data for a given id.
 	 *
 	 * @param int     $network_id
 	 * @return bool|array False if no network found with given id, array otherwise
@@ -428,7 +431,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * List all sites in a multisite install.
+	 * Lists all sites in a multisite installation.
 	 *
 	 * ## OPTIONS
 	 *
@@ -493,7 +496,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 */
 	public function list_( $_, $assoc_args ) {
 		if ( !is_multisite() ) {
-			WP_CLI::error( 'This is not a multisite install.' );
+			WP_CLI::error( 'This is not a multisite installation.' );
 		}
 
 		global $wpdb;
@@ -552,7 +555,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Archive one or more sites.
+	 * Archives one or more sites.
 	 *
 	 * ## OPTIONS
 	 *
@@ -569,7 +572,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Unarchive one or more sites.
+	 * Unarchives one or more sites.
 	 *
 	 * ## OPTIONS
 	 *
@@ -586,7 +589,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Activate one or more sites.
+	 * Activates one or more sites.
 	 *
 	 * ## OPTIONS
 	 *
@@ -603,7 +606,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Deactivate one or more sites.
+	 * Deactivates one or more sites.
 	 *
 	 * ## OPTIONS
 	 *
@@ -620,7 +623,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Mark one or more sites as spam.
+	 * Marks one or more sites as spam.
 	 *
 	 * ## OPTIONS
 	 *
@@ -637,7 +640,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Remove one or more sites from spam.
+	 * Removes one or more sites from spam.
 	 *
 	 * ## OPTIONS
 	 *
@@ -656,7 +659,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Set one or more sites as mature.
+	 * Sets one or more sites as mature.
 	 *
 	 * ## OPTIONS
 	 *
@@ -673,7 +676,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Set one or more sites as unmature.
+	 * Sets one or more sites as immature.
 	 *
 	 * ## OPTIONS
 	 *
@@ -690,7 +693,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Set one or more sites as public.
+	 * Sets one or more sites as public.
 	 *
 	 * ## OPTIONS
 	 *
@@ -709,7 +712,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Set one or more sites as private.
+	 * Sets one or more sites as private.
 	 *
 	 * ## OPTIONS
 	 *

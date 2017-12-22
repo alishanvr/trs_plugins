@@ -1,7 +1,7 @@
 wp-cli/server-command
 =====================
 
-Launch PHP's built-in web server for this specific WordPress installation.
+Launches PHP's built-in web server for a specific WordPress installation.
 
 [![Build Status](https://travis-ci.org/wp-cli/server-command.svg?branch=master)](https://travis-ci.org/wp-cli/server-command)
 
@@ -15,6 +15,9 @@ wp server [--host=<host>] [--port=<port>] [--docroot=<path>] [--config=<file>]
 
 Uses `php -S` to launch a web server serving the WordPress webroot.
 <http://php.net/manual/en/features.commandline.webserver.php>
+
+Importantly, PHP's built-in web server doesn't support `.htaccess` files.
+If this is a requirement, please use a more advanced web server.
 
 **OPTIONS**
 
@@ -47,7 +50,7 @@ Uses `php -S` to launch a web server serving the WordPress webroot.
     Press Ctrl-C to quit.
 
     # Run on port 80 (for multisite)
-    $ sudo wp server --host=localhost.localdomain --port=80
+    $ wp server --host=localhost.localdomain --port=80
     PHP 5.6.9 Development Server started at Tue May 24 01:30:06 2016
     Listening on http://localhost1.localdomain1:8080
     Document root is /
@@ -92,7 +95,7 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: http://wp-cli.org/#support
+Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 
 *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

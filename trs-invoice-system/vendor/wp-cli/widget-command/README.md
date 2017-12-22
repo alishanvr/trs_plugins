@@ -1,7 +1,7 @@
 wp-cli/widget-command
 =====================
 
-Manage widgets and sidebars.
+Adds, moves, and removes widgets; lists sidebars.
 
 [![Build Status](https://travis-ci.org/wp-cli/widget-command.svg?branch=master)](https://travis-ci.org/wp-cli/widget-command)
 
@@ -11,9 +11,44 @@ Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contr
 
 This package implements the following commands:
 
+### wp widget
+
+Manages widgets, including adding and moving them within sidebars.
+
+~~~
+wp widget
+~~~
+
+A [widget](https://developer.wordpress.org/themes/functionality/widgets/) adds content and features to a widget area (also called a [sidebar](https://developer.wordpress.org/themes/functionality/sidebars/)).
+
+**EXAMPLES**
+
+    # List widgets on a given sidebar
+    $ wp widget list sidebar-1
+    +----------+------------+----------+----------------------+
+    | name     | id         | position | options              |
+    +----------+------------+----------+----------------------+
+    | meta     | meta-6     | 1        | {"title":"Meta"}     |
+    | calendar | calendar-2 | 2        | {"title":"Calendar"} |
+    +----------+------------+----------+----------------------+
+
+    # Add a calendar widget to the second position on the sidebar
+    $ wp widget add calendar sidebar-1 2
+    Success: Added widget to sidebar.
+
+    # Update option(s) associated with a given widget
+    $ wp widget update calendar-1 --title="Calendar"
+    Success: Widget updated.
+
+    # Delete one or more widgets entirely
+    $ wp widget delete calendar-2 archive-1
+    Success: 2 widgets removed from sidebar.
+
+
+
 ### wp widget add
 
-Add a widget to a sidebar.
+Adds a widget to a sidebar.
 
 ~~~
 wp widget add <name> <sidebar-id> [<position>] [--<field>=<value>]
@@ -46,7 +81,7 @@ sidebar.
 
 ### wp widget deactivate
 
-Deactivate one or more widgets from an active sidebar.
+Deactivates one or more widgets from an active sidebar.
 
 ~~~
 wp widget deactivate <widget-id>...
@@ -69,7 +104,7 @@ Moves widgets to Inactive Widgets.
 
 ### wp widget delete
 
-Delete one or more widgets from a sidebar.
+Deletes one or more widgets from a sidebar.
 
 ~~~
 wp widget delete <widget-id>...
@@ -90,7 +125,7 @@ wp widget delete <widget-id>...
 
 ### wp widget list
 
-List widgets associated with a sidebar.
+Lists widgets associated with a sidebar.
 
 ~~~
 wp widget list <sidebar-id> [--fields=<fields>] [--format=<format>]
@@ -139,7 +174,7 @@ There are no optionally available fields.
 
 ### wp widget move
 
-Move the position of a widget.
+Moves the position of a widget.
 
 ~~~
 wp widget move <widget-id> [--position=<position>] [--sidebar-id=<sidebar-id>]
@@ -173,7 +208,7 @@ new sidebar.
 
 ### wp widget reset
 
-Reset sidebar.
+Resets sidebar.
 
 ~~~
 wp widget reset [<sidebar-id>...] [--all]
@@ -210,7 +245,7 @@ Removes all widgets from the sidebar and places them in Inactive Widgets.
 
 ### wp widget update
 
-Update options for an existing widget.
+Updates options for an existing widget.
 
 ~~~
 wp widget update <widget-id> [--<field>=<value>]
@@ -232,9 +267,29 @@ wp widget update <widget-id> [--<field>=<value>]
 
 
 
+### wp sidebar
+
+Lists registered sidebars.
+
+~~~
+wp sidebar
+~~~
+
+A [sidebar](https://developer.wordpress.org/themes/functionality/sidebars/) is any widgetized area of your theme.
+
+**EXAMPLES**
+
+    # List sidebars
+    $ wp sidebar list --fields=name,id --format=csv
+    name,id
+    "Widget Area",sidebar-1
+    "Inactive Widgets",wp_inactive_widgets
+
+
+
 ### wp sidebar list
 
-List registered sidebars.
+Lists registered sidebars.
 
 ~~~
 wp sidebar list [--fields=<fields>] [--format=<format>]
@@ -313,7 +368,7 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: http://wp-cli.org/#support
+Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 
 *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

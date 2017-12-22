@@ -1,3 +1,4 @@
+# Note: You need to execute the mysql command `GRANT ALL PRIVILEGES ON wp_cli_test_scaffold.* TO "wp_cli_test"@"localhost" IDENTIFIED BY "password1";` for these tests to work locally.
 Feature: Scaffold install-wp-tests.sh tests
 
   Scenario: Help should be displayed
@@ -18,11 +19,11 @@ Feature: Scaffold install-wp-tests.sh tests
     And I run `wp plugin path`
     And save STDOUT as {PLUGIN_DIR}
     And I run `wp scaffold plugin hello-world`
-    And I run `echo "DROP DATABASE IF EXISTS wordpress_behat_test" | mysql -u root`
+    And I run `MYSQL_PWD=password1 mysql -u wp_cli_test -e "DROP DATABASE IF EXISTS wp_cli_test_scaffold"`
     And I try `rm -fr /tmp/behat-wordpress-tests-lib`
     And I try `rm -fr /tmp/behat-wordpress`
 
-    When I run `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib WP_CORE_DIR=/tmp/behat-wordpress /usr/bin/env bash {PLUGIN_DIR}/hello-world/bin/install-wp-tests.sh wordpress_behat_test root '' localhost latest`
+    When I try `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib WP_CORE_DIR=/tmp/behat-wordpress /usr/bin/env bash {PLUGIN_DIR}/hello-world/bin/install-wp-tests.sh wp_cli_test_scaffold wp_cli_test password1 localhost latest`
     Then the return code should be 0
     And the /tmp/behat-wordpress-tests-lib directory should contain:
       """
@@ -59,12 +60,16 @@ Feature: Scaffold install-wp-tests.sh tests
       xmlrpc.php
       """
     And the {PLUGIN_DIR}/hello-world/phpunit.xml.dist file should exist
+    And STDERR should contain:
+      """
+      install_test_suite
+      """
 
-    When I run `echo 'show databases' | mysql -u root`
+    When I run `MYSQL_PWD=password1 mysql -u wp_cli_test -e "SHOW DATABASES"`
     Then the return code should be 0
     And STDOUT should contain:
       """
-      wordpress_behat_test
+      wp_cli_test_scaffold
       """
 
     When I run `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib phpunit -c {PLUGIN_DIR}/hello-world/phpunit.xml.dist`
@@ -75,11 +80,11 @@ Feature: Scaffold install-wp-tests.sh tests
     And I run `wp plugin path`
     And save STDOUT as {PLUGIN_DIR}
     And I run `wp scaffold plugin hello-world`
-    And I run `echo "DROP DATABASE IF EXISTS wordpress_behat_test" | mysql -u root`
+    And I run `MYSQL_PWD=password1 mysql -u wp_cli_test -e "DROP DATABASE IF EXISTS wp_cli_test_scaffold"`
     And I try `rm -fr /tmp/behat-wordpress-tests-lib`
     And I try `rm -fr /tmp/behat-wordpress`
 
-    When I run `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib WP_CORE_DIR=/tmp/behat-wordpress /usr/bin/env bash {PLUGIN_DIR}/hello-world/bin/install-wp-tests.sh wordpress_behat_test root '' localhost trunk`
+    When I try `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib WP_CORE_DIR=/tmp/behat-wordpress /usr/bin/env bash {PLUGIN_DIR}/hello-world/bin/install-wp-tests.sh wp_cli_test_scaffold wp_cli_test password1 localhost trunk`
     Then the return code should be 0
     And the /tmp/behat-wordpress-tests-lib directory should contain:
       """
@@ -115,14 +120,18 @@ Feature: Scaffold install-wp-tests.sh tests
       wp-trackback.php
       xmlrpc.php
       """
-    And the contents of the /tmp/behat-wordpress/wp-includes/version.php file should match /\-(alpha|beta[0-9]+)\-/
+    And the contents of the /tmp/behat-wordpress/wp-includes/version.php file should match /\-(alpha|beta[0-9]+|RC[0-9]+)\-/
     And the {PLUGIN_DIR}/hello-world/phpunit.xml.dist file should exist
+    And STDERR should contain:
+      """
+      install_test_suite
+      """
 
-    When I run `echo 'show databases' | mysql -u root`
+    When I run `MYSQL_PWD=password1 mysql -u wp_cli_test -e "SHOW DATABASES"`
     Then the return code should be 0
     And STDOUT should contain:
       """
-      wordpress_behat_test
+      wp_cli_test_scaffold
       """
 
     When I run `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib phpunit -c {PLUGIN_DIR}/hello-world/phpunit.xml.dist`
@@ -133,11 +142,11 @@ Feature: Scaffold install-wp-tests.sh tests
     And I run `wp plugin path`
     And save STDOUT as {PLUGIN_DIR}
     And I run `wp scaffold plugin hello-world`
-    And I run `echo "DROP DATABASE IF EXISTS wordpress_behat_test" | mysql -u root`
+    And I run `MYSQL_PWD=password1 mysql -u wp_cli_test -e "DROP DATABASE IF EXISTS wp_cli_test_scaffold"`
     And I try `rm -fr /tmp/behat-wordpress-tests-lib`
     And I try `rm -fr /tmp/behat-wordpress`
 
-    When I run `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib WP_CORE_DIR=/tmp/behat-wordpress /usr/bin/env bash {PLUGIN_DIR}/hello-world/bin/install-wp-tests.sh wordpress_behat_test root '' localhost 3.7`
+    When I try `WP_TESTS_DIR=/tmp/behat-wordpress-tests-lib WP_CORE_DIR=/tmp/behat-wordpress /usr/bin/env bash {PLUGIN_DIR}/hello-world/bin/install-wp-tests.sh wp_cli_test_scaffold wp_cli_test password1 localhost 3.7`
     Then the return code should be 0
     And the /tmp/behat-wordpress-tests-lib directory should contain:
       """
@@ -177,10 +186,14 @@ Feature: Scaffold install-wp-tests.sh tests
       """
       3.7
       """
+    And STDERR should contain:
+      """
+      install_test_suite
+      """
 
-    When I run `echo 'show databases' | mysql -u root`
+    When I run `MYSQL_PWD=password1 mysql -u wp_cli_test -e "SHOW DATABASES"`
     Then the return code should be 0
     And STDOUT should contain:
       """
-      wordpress_behat_test
+      wp_cli_test_scaffold
       """

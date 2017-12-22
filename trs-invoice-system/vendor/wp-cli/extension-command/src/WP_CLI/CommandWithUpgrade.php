@@ -485,6 +485,7 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 			'active-network' => 'N',
 			'must-use' => 'M',
 			'parent' => 'P',
+			'dropin' => 'D',
 		),
 		'long' => array(
 			'inactive' => 'Inactive',
@@ -492,6 +493,7 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 			'active-network' => 'Network Active',
 			'must-use' => 'Must Use',
 			'parent' => 'Parent',
+			'dropin' => 'Drop-In',
 		)
 	);
 
@@ -506,6 +508,7 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 			'active-network' => '%g',
 			'must-use' => '%c',
 			'parent' => '%p',
+			'dropin' => '%B',
 		);
 
 		return $colors[ $status ];
@@ -621,6 +624,24 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 
 	protected function get_formatter( &$assoc_args ) {
 		return new \WP_CLI\Formatter( $assoc_args, $this->obj_fields, $this->item_type );
+	}
+
+	/**
+	 * Error handler to ignore failures on accessing SSL "https://api.wordpress.org/themes/update-check/1.1/" in `wp_update_themes()`
+	 * and "https://api.wordpress.org/plugins/update-check/1.1/" in `wp_update_plugins()` which seem to occur intermittently.
+	 */
+	public static function error_handler( $errno, $errstr, $errfile, $errline, $errcontext = null ) {
+		// If ignoring E_USER_WARNING | E_USER_NOTICE, default.
+		if ( ! ( error_reporting() & $errno ) ) {
+			return false;
+		}
+		// If not in "wp-includes/update.php", default.
+		$update_php = 'wp-includes/update.php';
+		if ( 0 !== substr_compare( $errfile, $update_php, -strlen( $update_php ) ) ) {
+			return false;
+		}
+		// Else assume it's in `wp_update_themes()` or `wp_update_plugins()` and just ignore it.
+		return true;
 	}
 
 }

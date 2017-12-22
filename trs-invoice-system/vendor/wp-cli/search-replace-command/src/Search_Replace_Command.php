@@ -9,6 +9,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 	private $regex;
 	private $regex_flags;
 	private $regex_delimiter;
+	private $skip_tables;
 	private $skip_columns;
 	private $include_columns;
 	private $format;
@@ -24,7 +25,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 	private $log_run_data = array();
 
 	/**
-	 * Search/replace strings in the database.
+	 * Searches/replaces strings in the database.
 	 *
 	 * Searches through all rows in a selection of tables and replaces
 	 * appearances of the first string with the second string.
@@ -73,6 +74,10 @@ class Search_Replace_Command extends WP_CLI_Command {
 	 * : Define number of rows in single INSERT statement when doing SQL export.
 	 * You might want to change this depending on your database configuration
 	 * (e.g. if you need to do fewer queries). Default: 50
+	 *
+	 * [--skip-tables=<tables>]
+	 * : Do not perform the replacement on specific tables. Use commas to
+	 * specify multiple tables.
 	 *
 	 * [--skip-columns=<columns>]
 	 * : Do not perform the replacement on specific columns. Use commas to
@@ -148,9 +153,9 @@ class Search_Replace_Command extends WP_CLI_Command {
 	 *     # Bash script: Search/replace production to development url (multisite compatible)
 	 *     #!/bin/bash
 	 *     if $(wp --url=http://example.com core is-installed --network); then
-	 *         wp search-replace --url=http://example.com 'http://example.com' 'http://example.dev' --recurse-objects --network --skip-columns=guid
+	 *         wp search-replace --url=http://example.com 'http://example.com' 'http://example.dev' --recurse-objects --network --skip-columns=guid --skip-tables=wp_users
 	 *     else
-	 *         wp search-replace 'http://example.com' 'http://example.dev' --recurse-objects --skip-columns=guid
+	 *         wp search-replace 'http://example.com' 'http://example.dev' --recurse-objects --skip-columns=guid --skip-tables=wp_users
 	 *     fi
 	 */
 	public function __invoke( $args, $assoc_args ) {
@@ -195,6 +200,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 		}
 
 		$this->skip_columns = explode( ',', \WP_CLI\Utils\get_flag_value( $assoc_args, 'skip-columns' ) );
+		$this->skip_tables = explode( ',', \WP_CLI\Utils\get_flag_value( $assoc_args, 'skip-tables' ) );
 		$this->include_columns = array_filter( explode( ',', \WP_CLI\Utils\get_flag_value( $assoc_args, 'include-columns' ) ) );
 
 		if ( $old === $new && ! $this->regex ) {
@@ -269,7 +275,12 @@ class Search_Replace_Command extends WP_CLI_Command {
 
 		// Get table names based on leftover $args or supplied $assoc_args
 		$tables = \WP_CLI\Utils\wp_get_table_names( $args, $assoc_args );
+
 		foreach ( $tables as $table ) {
+
+			if ( in_array( $table, $this->skip_tables ) ) {
+				continue;
+			}
 
 			$table_sql = self::esc_sql_ident( $table );
 
@@ -291,6 +302,11 @@ class Search_Replace_Command extends WP_CLI_Command {
 			// since we'll be updating one row at a time,
 			// we need a primary key to identify the row
 			if ( empty( $primary_keys ) ) {
+
+				// wasn't updated, so skip to the next table
+				if ( $this->report_changed_only ) {
+					continue;
+				}
 				if ( $this->report ) {
 					$report[] = array( $table, '', 'skipped', '' );
 				} else {
@@ -353,7 +369,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 			return;
 		}
 
-		if ( $this->report ) {
+		if ( $this->report && ! empty( $report ) ) {
 			$table = new \cli\Table();
 			$table->setHeaders( array( 'Table', 'Column', 'Replacements', 'Type' ) );
 			$table->setRows( $report );
@@ -547,7 +563,14 @@ class Search_Replace_Command extends WP_CLI_Command {
 			if( ( $index % $export_insert_size == 0 && $index > 0 ) || $index == $count ) {
 				$sql .= ";\n";
 
-				$sql = $wpdb->prepare( $sql, array_values( $values ) );
+				if( method_exists( $wpdb, 'remove_placeholder_escape' ) ) {
+					// since 4.8.3
+					$sql = $wpdb->remove_placeholder_escape( $wpdb->prepare( $sql, array_values( $values ) ) );
+				} else {
+					// 4.8.2 or less
+					$sql = $wpdb->prepare( $sql, array_values( $values ) );
+				}
+
 				fwrite( $this->export_handle, $sql );
 
 				// If there is still rows to loop, reset $sql and $values variables.
@@ -808,7 +831,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 	}
 
 	/*
-	 * Output the log strings.
+	 * Outputs the log strings.
 	 *
 	 * @param string $col Column being processed.
 	 * @param array $keys Associative array (or object) of primary key names and their values for the row being processed.

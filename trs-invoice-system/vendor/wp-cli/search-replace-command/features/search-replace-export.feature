@@ -20,6 +20,12 @@ Feature: Search / replace with file export
       http://example.com
       """
 
+    When I run `wp search-replace example.com example.net --skip-tables=wp_options --export`
+    Then STDOUT should not contain:
+      """
+      INSERT INTO `wp_options`
+      """
+
     When I run `wp search-replace example.com example.net --skip-columns=option_value --export`
     Then STDOUT should contain:
       """
@@ -33,7 +39,7 @@ Feature: Search / replace with file export
       ('1', 'siteurl', 'http://example.com', 'yes');
     INSERT INTO `wp_options` (`option_id`, `option_name`, `option_value`, `autoload`) VALUES 
       """
-          
+
     When I run `wp search-replace foo bar --export | tail -n 1`
     Then STDOUT should not contain:
       """
@@ -333,3 +339,18 @@ Feature: Search / replace with file export
       wp_users	display_name	0	PHP
       """
     And STDERR should be empty
+
+  Scenario: Search / replace should remove placeholder escape on export
+    Given a WP install
+    And I run `wp post create --post_title=test-remove-placeholder-escape% --porcelain`
+    Then save STDOUT as {POST_ID}
+
+    When I run `wp search-replace baz bar --export | grep test-remove-placeholder-escape`
+    Then STDOUT should contain:
+      """
+      'test-remove-placeholder-escape%'
+      """
+    And STDOUT should not contain:
+      """
+      'test-remove-placeholder-escape{'
+      """

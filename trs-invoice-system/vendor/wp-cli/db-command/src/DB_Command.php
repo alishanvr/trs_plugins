@@ -3,7 +3,7 @@
 use \WP_CLI\Utils;
 
 /**
- * Perform basic database operations using credentials stored in wp-config.php
+ * Performs basic database operations using credentials stored in wp-config.php.
  *
  * ## EXAMPLES
  *
@@ -21,11 +21,13 @@ use \WP_CLI\Utils;
  *
  *     # Execute a SQL query stored in a file.
  *     $ wp db query < debug.sql
+ *
+ * @when after_wp_config_load
  */
 class DB_Command extends WP_CLI_Command {
 
 	/**
-	 * Create a new database.
+	 * Creates a new database.
 	 *
 	 * Runs `CREATE_DATABASE` SQL statement using `DB_HOST`, `DB_NAME`,
 	 * `DB_USER` and `DB_PASSWORD` database credentials specified in
@@ -44,7 +46,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Delete the existing database.
+	 * Deletes the existing database.
 	 *
 	 * Runs `DROP_DATABASE` SQL statement using `DB_HOST`, `DB_NAME`,
 	 * `DB_USER` and `DB_PASSWORD` database credentials specified in
@@ -69,7 +71,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Remove all tables from the database.
+	 * Removes all tables from the database.
 	 *
 	 * Runs `DROP_DATABASE` and `CREATE_DATABASE` SQL statements using
 	 * `DB_HOST`, `DB_NAME`, `DB_USER` and `DB_PASSWORD` database credentials
@@ -95,7 +97,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Check the current status of the database.
+	 * Checks the current status of the database.
 	 *
 	 * Runs `mysqlcheck` utility with `--check` using `DB_HOST`,
 	 * `DB_NAME`, `DB_USER` and `DB_PASSWORD` database credentials
@@ -118,7 +120,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Optimize the database.
+	 * Optimizes the database.
 	 *
 	 * Runs `mysqlcheck` utility with `--optimize=true` using `DB_HOST`,
 	 * `DB_NAME`, `DB_USER` and `DB_PASSWORD` database credentials
@@ -141,7 +143,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Repair the database.
+	 * Repairs the database.
 	 *
 	 * Runs `mysqlcheck` utility with `--repair=true` using `DB_HOST`,
 	 * `DB_NAME`, `DB_USER` and `DB_PASSWORD` database credentials
@@ -164,7 +166,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Open a MySQL console using credentials from wp-config.php
+	 * Opens a MySQL console using credentials from wp-config.php
 	 *
 	 * ## OPTIONS
 	 *
@@ -194,7 +196,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Execute a SQL query against the database.
+	 * Executes a SQL query against the database.
 	 *
 	 * Executes an arbitrary SQL query using `DB_HOST`, `DB_NAME`, `DB_USER`
 	 *  and `DB_PASSWORD` database credentials specified in wp-config.php.
@@ -372,7 +374,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Import a database from a file or from STDIN.
+	 * Imports a database from a file or from STDIN.
 	 *
 	 * Runs SQL queries using `DB_HOST`, `DB_NAME`, `DB_USER` and
 	 * `DB_PASSWORD` database credentials specified in wp-config.php. This
@@ -422,7 +424,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * List the database tables.
+	 * Lists the database tables.
 	 *
 	 * Defaults to all tables registered to the $wpdb database handler.
 	 *
@@ -469,6 +471,8 @@ class DB_Command extends WP_CLI_Command {
 	 *     # Export only tables for a single site
 	 *     $ wp db export --tables=$(wp db tables --url=sub.example.com --format=csv)
 	 *     Success: Exported to wordpress_dbase.sql
+	 *
+	 * @when after_wp_load
 	 */
 	public function tables( $args, $assoc_args ) {
 
@@ -491,7 +495,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Display the database name and size.
+	 * Displays the database name and size.
 	 *
 	 * Display the database name and size for `DB_NAME` specified in wp-config.php.
 	 * The size defaults to a human-readable number.
@@ -568,11 +572,10 @@ class DB_Command extends WP_CLI_Command {
 	 *
 	 *     $ wp db size --size_format=mb
 	 *     6
+	 *
+	 * @when after_wp_load
 	 */
 	public function size( $args, $assoc_args ) {
-
-		// Avoid a constant redefinition in wp-config.
-		@WP_CLI::get_runner()-> load_wordpress();
 
 		global $wpdb;
 
@@ -593,6 +596,8 @@ class DB_Command extends WP_CLI_Command {
 		$rows = array();
 		$fields = array( 'Name', 'Size' );
 
+		$default_unit = ( empty( $size_format ) ) ? ' B' : '';
+
 		if ( $tables ) {
 
 			// Add all of the table sizes
@@ -609,7 +614,7 @@ class DB_Command extends WP_CLI_Command {
 				// Add the table size to the list.
 				$rows[] = array(
 					'Name'  => $table_name,
-					'Size'  => strtoupper( size_format( $table_bytes ) ),
+					'Size'  => strtoupper( $table_bytes ) . $default_unit,
 				);
 			}
 		} else {
@@ -624,31 +629,43 @@ class DB_Command extends WP_CLI_Command {
 			// Add the database size to the list.
 			$rows[] = array(
 				'Name'  => DB_NAME,
-				'Size'  => strtoupper( size_format( $db_bytes ) ),
+				'Size'  => strtoupper( $db_bytes ) . $default_unit,
 				);
 		}
 
-		if ( ! empty( $size_format ) && isset( $db_bytes ) && ! $tables ) {
+		if ( ! empty( $size_format ) ) {
+			foreach( $rows as $index => $row ) {
+					// These added WP 4.4.0.
+					if ( ! defined( 'KB_IN_BYTES' ) ) {
+						define( 'KB_IN_BYTES', 1024 );
+					}
+					if ( ! defined( 'MB_IN_BYTES' ) ) {
+						define( 'MB_IN_BYTES', 1024 * KB_IN_BYTES );
+					}
 
-			// Display the database size as a number.
-			switch( $size_format ) {
-				case 'mb':
-					$divisor = MB_IN_BYTES;
-					break;
+					// Display the database size as a number.
+					switch( $size_format ) {
+						case 'mb':
+							$divisor = MB_IN_BYTES;
+							break;
 
-				case 'kb':
-					$divisor = KB_IN_BYTES;
-					break;
+						case 'kb':
+							$divisor = KB_IN_BYTES;
+							break;
 
-				case 'b':
-				default:
-					$divisor = 1;
-					break;
+						case 'b':
+						default:
+							$divisor = 1;
+							break;
+					}
+
+					$rows[ $index ]['Size'] = ceil( $row['Size'] / $divisor ) . " " . strtoupper( $size_format );
 			}
+		}
 
-			WP_CLI::Line( ceil( $db_bytes / $divisor ) );
+		if ( ! empty( $size_format) && ! $tables ) {
+			WP_CLI::Line( filter_var( $rows[0]['Size'], FILTER_SANITIZE_NUMBER_INT ) );
 		} else {
-
 			// Display the rows.
 			$args = array(
 				'format' => $format,
@@ -660,7 +677,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Display the database table prefix.
+	 * Displays the database table prefix.
 	 *
 	 * Display the database table prefix, as defined by the database handler's interpretation of the current site.
 	 *
@@ -668,18 +685,17 @@ class DB_Command extends WP_CLI_Command {
 	 *
 	 *     $ wp db prefix
 	 *     wp_
+	 *
+	 * @when after_wp_load
 	 */
 	public function prefix() {
-		// Avoid a constant redefinition in wp-config.
-		@WP_CLI::get_runner()->load_wordpress();
-
 		global $wpdb;
 
 		WP_CLI::log( $wpdb->prefix );
 	}
 
 	/**
-	 * Find a string in the database.
+	 * Finds a string in the database.
 	 *
 	 * Searches through all or a selection of database tables for a given string, Outputs colorized references to the string.
 	 *
@@ -799,14 +815,12 @@ class DB_Command extends WP_CLI_Command {
 	 *         ...
 	 *     Success: Found 99146 matches in 10.752s (10.559s searching). Searched 12 tables, 53 columns, 1358907 rows. 1 table skipped: wp_term_relationships.
 	 *
+	 * @when after_wp_load
 	 */
 	public function search( $args, $assoc_args ) {
 		global $wpdb;
 
 		$start_run_time = microtime( true );
-
-		// Avoid a constant redefinition in wp-config.
-		@WP_CLI::get_runner()->load_wordpress();
 
 		$search = array_shift( $args );
 
@@ -1014,7 +1028,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Get the column names of a db table differentiated into key columns and text columns and all columns.
+	 * Gets the column names of a db table differentiated into key columns and text columns and all columns.
 	 *
 	 * @param string $table The table name.
 	 * @return array A 3 element array consisting of an array of primary key column names, an array of text column names, and an array containing all column names.
@@ -1041,7 +1055,7 @@ class DB_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Whether a column is considered text or not.
+	 * Determines whether a column is considered text or not.
 	 *
 	 * @param string Column type.
 	 * @bool True if text column, false otherwise.

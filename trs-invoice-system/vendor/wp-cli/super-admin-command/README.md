@@ -1,7 +1,7 @@
 wp-cli/super-admin-command
 ==========================
 
-Lists, adds, or removes super admin users on a multisite install.
+Lists, adds, or removes super admin users on a multisite installation.
 
 [![Build Status](https://travis-ci.org/wp-cli/super-admin-command.svg?branch=master)](https://travis-ci.org/wp-cli/super-admin-command)
 
@@ -11,9 +11,34 @@ Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contr
 
 This package implements the following commands:
 
+### wp super-admin
+
+Lists, adds, or removes super admin users on a multisite installation.
+
+~~~
+wp super-admin
+~~~
+
+**EXAMPLES**
+
+    # List user with super-admin capabilities
+    $ wp super-admin list
+    supervisor
+    administrator
+
+    # Grant super-admin privileges to the user.
+    $ wp super-admin add superadmin2
+    Success: Granted super-admin capabilities.
+
+    # Revoke super-admin privileges to the user.
+    $ wp super-admin remove superadmin2
+    Success: Revoked super-admin capabilities.
+
+
+
 ### wp super-admin add
 
-Grant super admin privileges to one or more users.
+Grants super admin privileges to one or more users.
 
 ~~~
 wp super-admin add <user>...
@@ -33,7 +58,7 @@ wp super-admin add <user>...
 
 ### wp super-admin list
 
-List users with super admin capabilities.
+Lists users with super admin capabilities.
 
 ~~~
 wp super-admin list [--format=<format>]
@@ -65,7 +90,7 @@ wp super-admin list [--format=<format>]
 
 ### wp super-admin remove
 
-Remove super admin privileges from one or more users.
+Removes super admin privileges from one or more users.
 
 ~~~
 wp super-admin remove <user>...
@@ -113,7 +138,7 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: http://wp-cli.org/#support
+Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 
 *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

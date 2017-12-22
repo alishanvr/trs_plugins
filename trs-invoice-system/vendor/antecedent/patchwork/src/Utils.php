@@ -351,6 +351,28 @@ function wasRunAsConsoleApp()
     );
 }
 
+function getParameterAndArgumentLists(\ReflectionMethod $reflection = null)
+{
+    $parameters = [];
+    $arguments = [];
+    if ($reflection) {
+        foreach ($reflection->getParameters() as $p) {
+            $parameter = '$' . $p->name;
+            if ($p->isOptional()) {
+                try {
+                    $value = var_export($p->getDefaultValue(), true);
+                } catch (\ReflectionException $e) {
+                    $value = var_export(CallRerouting\INSTANTIATOR_DEFAULT_ARGUMENT, true);
+                }
+                $parameter .= ' = ' . $value;
+            }
+            $parameters[] = $parameter;
+            $arguments[] = '$' . $p->name;
+        }
+    }
+    return [join(', ' , $parameters), join(', ', $arguments)];
+}
+
 function args()
 {
     return func_get_args();

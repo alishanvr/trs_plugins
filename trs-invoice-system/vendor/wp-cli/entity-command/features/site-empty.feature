@@ -1,7 +1,7 @@
 Feature: Empty a WordPress site of its data
 
   Scenario: Empty a site
-    Given a WP install
+    Given a WP installation
     And I run `wp option update uploads_use_yearmonth_folders 0`
     And download:
       | path                        | url                                              |
@@ -13,8 +13,9 @@ Feature: Empty a WordPress site of its data
     When I try `wp site url 1`
     Then STDERR should be:
       """
-      Error: This is not a multisite install.
+      Error: This is not a multisite installation.
       """
+    And the return code should be 1
 
     When I run `wp post create --post_title='Test post' --post_content='Test content.' --porcelain`
     Then STDOUT should be:
@@ -42,7 +43,7 @@ Feature: Empty a WordPress site of its data
     Then STDOUT should be empty
 
   Scenario: Empty a site and its uploads directory
-    Given a WP multisite install
+    Given a WP multisite installation
     And I run `wp site create --slug=foo`
     And I run `wp --url=example.com/foo option update uploads_use_yearmonth_folders 0`
     And download:

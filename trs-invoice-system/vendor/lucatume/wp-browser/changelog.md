@@ -4,6 +4,20 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ##[unreleased] Unreleased
 
+##[1.21.23] 2017-12-13;
+### Fixed
+- fixed an `ExtendedDbDriver` signature issue (thanks @kouratoras)
+- better handling of user input and error in `wpbrowser` template
+- fixed an issue where files with `declare` type instructions would trigger fatal errors when using `WPLoader` module in `multisite` mode (thanks @jbrinley)
+
+##[1.21.22] 2017-11-27;
+### Fixed
+- serialization issue in WP-Loader module (thanks @johnnyhuy)
+
+##[1.21.21] 2017-11-24;
+### Fixed
+- user defined suite names are now respected during `init wpbrowser` based scaffolding process
+
 ##[1.21.20] 2017-10-10;
 ### Fixed
 - a WordPress 4.6 related issue with hook saving (issue #108)
@@ -645,7 +659,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Reference to ModuleConfigException class in WPLoader class.
 
-[unreleased]: https://github.com/lucatume/wp-browser/compare/1.21.20...HEAD
+[unreleased]: https://github.com/lucatume/wp-browser/compare/1.21.22...HEAD
+[1.21.23]: https://github.com/lucatume/wp-browser/compare/1.21.22...1.21.23
+[1.21.22]: https://github.com/lucatume/wp-browser/compare/1.21.21...1.21.22
+[1.21.21]: https://github.com/lucatume/wp-browser/compare/1.21.20...1.21.21
 [1.21.20]: https://github.com/lucatume/wp-browser/compare/1.21.19...1.21.20
 [1.21.19]: https://github.com/lucatume/wp-browser/compare/1.21.18...1.21.19
 [1.21.18]: https://github.com/lucatume/wp-browser/compare/1.21.17...1.21.18

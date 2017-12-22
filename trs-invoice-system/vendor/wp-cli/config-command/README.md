@@ -13,7 +13,7 @@ This package implements the following commands:
 
 ### wp config
 
-Manage the wp-config.php file
+Creates and retrieves the wp-config.php file.
 
 ~~~
 wp config
@@ -25,7 +25,7 @@ wp config
 
 ### wp config create
 
-Generate a wp-config.php file.
+Generates a wp-config.php file.
 
 ~~~
 wp config create --dbname=<dbname> --dbuser=<dbuser> [--dbpass=<dbpass>] [--dbhost=<dbhost>] [--dbprefix=<dbprefix>] [--dbcharset=<dbcharset>] [--dbcollate=<dbcollate>] [--locale=<locale>] [--extra-php] [--skip-salts] [--skip-check] [--force]
@@ -92,9 +92,9 @@ the database constants are correct.
 
     # Enable WP_DEBUG and WP_DEBUG_LOG
     $ wp config create --dbname=testing --dbuser=wp --dbpass=securepswd --extra-php <<PHP
-    $ define( 'WP_DEBUG', true );
-    $ define( 'WP_DEBUG_LOG', true );
-    $ PHP
+    define( 'WP_DEBUG', true );
+    define( 'WP_DEBUG_LOG', true );
+    PHP
     Success: Generated 'wp-config.php' file.
 
     # Avoid disclosing password to bash history by reading from password.txt
@@ -106,7 +106,7 @@ the database constants are correct.
 
 ### wp config get
 
-Get variables, constants, and file includes defined in wp-config.php file.
+Gets variables, constants, and file includes defined in wp-config.php file.
 
 ~~~
 wp config get [--fields=<fields>] [--constant=<constant>] [--global=<global>] [--format=<format>]
@@ -153,7 +153,7 @@ wp config get [--fields=<fields>] [--constant=<constant>] [--global=<global>] [-
 
 ### wp config path
 
-Get the path to wp-config.php file.
+Gets the path to wp-config.php file.
 
 ~~~
 wp config path 
@@ -197,7 +197,7 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: http://wp-cli.org/#support
+Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 
 *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

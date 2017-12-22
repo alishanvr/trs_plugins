@@ -44,7 +44,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Create a new comment.
+	 * Creates a new comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -69,6 +69,9 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 				if ( !$post ) {
 					return new WP_Error( 'no_post', "Can't find post $post_id." );
 				}
+			} else {
+				// Make sure it's set for older WP versions else get undefined PHP notice.
+				$params['comment_post_ID'] = 0;
 			}
 
 			// We use wp_insert_comment() instead of wp_new_comment() to stay at a low level and
@@ -84,7 +87,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Update one or more comments.
+	 * Updates one or more comments.
 	 *
 	 * ## OPTIONS
 	 *
@@ -112,7 +115,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Generate some number of new dummy comments.
+	 * Generates some number of new dummy comments.
 	 *
 	 * Creates a specified number of new comments with dummy data.
 	 *
@@ -152,7 +155,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 
 		$defaults = array(
 			'count'    => 100,
-			'post_id'  => null,
+			'post_id'  => 0,
 		);
 		$assoc_args = array_merge( $defaults, $assoc_args );
 
@@ -191,7 +194,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Get data of a single comment.
+	 * Gets the data of a single comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -238,7 +241,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Get a list of comments.
+	 * Gets a list of comments.
 	 *
 	 * ## OPTIONS
 	 *
@@ -363,7 +366,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Delete a comment.
+	 * Deletes a comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -428,7 +431,17 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Trash a comment.
+	 * Warns if `$_SERVER['SERVER_NAME']` not set as used in email from-address sent to post author in `wp_notify_postauthor()`.
+	 */
+	private function check_server_name() {
+		if ( empty( $_SERVER['SERVER_NAME'] ) ) {
+			WP_CLI::warning( 'Site url not set - defaulting to \'example.com\'. Any notification emails sent to post author may appear to come from \'example.com\'.' );
+			$_SERVER['SERVER_NAME'] = 'example.com';
+		}
+	}
+
+	/**
+	 * Trashes a comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -448,7 +461,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Untrash a comment.
+	 * Untrashes a comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -462,13 +475,14 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	 *     Success: Untrashed comment 1337.
 	 */
 	public function untrash( $args, $assoc_args ) {
+		$this->check_server_name();
 		foreach( $args as $id ) {
 			$this->call( $id, __FUNCTION__, 'Untrashed', 'Failed untrashing' );
 		}
 	}
 
 	/**
-	 * Mark a comment as spam.
+	 * Marks a comment as spam.
 	 *
 	 * ## OPTIONS
 	 *
@@ -488,7 +502,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Unmark a comment as spam.
+	 * Unmarks a comment as spam.
 	 *
 	 * ## OPTIONS
 	 *
@@ -502,13 +516,14 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	 *     Success: Unspammed comment 1337.
 	 */
 	public function unspam( $args, $assoc_args ) {
+		$this->check_server_name();
 		foreach( $args as $id ) {
 			$this->call( $id, __FUNCTION__, 'Unspammed', 'Failed unspamming' );
 		}
 	}
 
 	/**
-	 * Approve a comment.
+	 * Approves a comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -522,13 +537,14 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	 *     Success: Approved comment 1337.
 	 */
 	public function approve( $args, $assoc_args ) {
+		$this->check_server_name();
 		foreach( $args as $id ) {
 			$this->set_status( $id, 'approve', "Approved" );
 		}
 	}
 
 	/**
-	 * Unapprove a comment.
+	 * Unapproves a comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -542,13 +558,14 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	 *     Success: Unapproved comment 1337.
 	 */
 	public function unapprove( $args, $assoc_args ) {
+		$this->check_server_name();
 		foreach( $args as $id ) {
 			$this->set_status( $id, 'hold', "Unapproved" );
 		}
 	}
 
 	/**
-	 * Count comments, on whole blog or on a given post.
+	 * Counts comments, on whole blog or on a given post.
 	 *
 	 * ## OPTIONS
 	 *
@@ -593,7 +610,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Recalculate the comment_count value for one or more posts.
+	 * Recalculates the comment_count value for one or more posts.
 	 *
 	 * ## OPTIONS
 	 *
@@ -619,7 +636,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Get status of a comment.
+	 * Gets the status of a comment.
 	 *
 	 * ## OPTIONS
 	 *
@@ -645,7 +662,7 @@ class Comment_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Verify whether a comment exists.
+	 * Verifies whether a comment exists.
 	 *
 	 * Displays a success message if the comment does exist.
 	 *

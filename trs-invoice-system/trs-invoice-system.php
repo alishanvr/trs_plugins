@@ -18,7 +18,7 @@
 	 * Description: Invoice System for woocommerce
 	 * Version:     1.0.0
 	 * Author:      Ali Shan
-	 * Author URI:  http://therightsol.com
+	 * Author URI:  https://profiles.wordpress.org/alishanvr
 	 * Text Domain: therightsol
 	 * License:     GPL-2.0+
 	 * License URI: http://www.gnu.org/licenses/gpl-2.0.txt

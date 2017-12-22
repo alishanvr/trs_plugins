@@ -9,6 +9,12 @@ Feature: Do global search/replace
       guid
       """
 
+    When I run `wp search-replace foo bar --skip-tables=wp_posts`
+    Then STDOUT should not contain:
+      """
+      wp_posts
+      """
+
     When I run `wp search-replace foo bar --skip-columns=guid`
     Then STDOUT should not contain:
       """
@@ -110,6 +116,7 @@ Feature: Do global search/replace
       """
       Error: Couldn't find any tables matching: wp_opt*on
       """
+    And the return code should be 1
 
     When I run `wp search-replace foo burrito wp_opt\* wp_postme\*`
     Then STDOUT should be a table containing rows:
@@ -250,12 +257,13 @@ Feature: Do global search/replace
   Scenario: Search and replace with the same terms
     Given a WP install
 
-    When I run `wp search-replace foo foo`
+    When I try `wp search-replace foo foo`
     Then STDERR should be:
       """
       Warning: Replacement value 'foo' is identical to search value 'foo'. Skipping operation.
       """
     And STDOUT should be empty
+    And the return code should be 0
 
   Scenario: Search and replace a table that has a multi-column primary key
     Given a WP install
@@ -465,6 +473,7 @@ Feature: Do global search/replace
       """
     And STDERR should be empty
 
+  @suppress_report__only_changes
   Scenario: Suppress report or only report changes
     Given a WP install
 
@@ -562,6 +571,18 @@ Feature: Do global search/replace
       """
     And STDERR should be empty
 
+    When I run `wp search-replace nobaz1 baz6 --report-changed-only`
+    Then STDOUT should contain:
+      """
+      Success: Made 0 replacements.
+      """
+    And STDOUT should not contain:
+      """
+      Table	Column	Replacements	Type
+      """
+    And STDERR should be empty
+
+  @no_table__no_primary_key
   Scenario: Deal with non-existent table and table with no primary keys
     Given a WP install
 
@@ -575,7 +596,7 @@ Feature: Do global search/replace
     | no_such_table |        | skipped      |      |
     And STDERR should be empty
 
-    When I run `wp search-replace foo bar no_such_table --no-report`
+    When I try `wp search-replace foo bar no_such_table --no-report`
     Then STDOUT should contain:
       """
       Success: Made 0 replacements.
@@ -588,6 +609,7 @@ Feature: Do global search/replace
       """
       Warning: No such table 'no_such_table'.
       """
+    And the return code should be 0
 
     When I run `wp db query "CREATE TABLE no_key ( awesome_stuff TEXT );"`
     And I run `wp search-replace foo bar no_key`
@@ -600,7 +622,19 @@ Feature: Do global search/replace
     | no_key |        | skipped      |      |
     And STDERR should be empty
 
-    When I run `wp search-replace foo bar no_key --no-report`
+    And I run `wp search-replace foo bar no_key --report-changed-only`
+    Then STDOUT should contain:
+      """
+      Success: Made 0 replacements.
+      """
+    And STDOUT should not contain:
+      """
+      | Table  | Column | Replacements | Type |
+      | no_key |        | skipped      |      |
+      """
+    And STDERR should be empty
+
+    When I try `wp search-replace foo bar no_key --no-report`
     Then STDOUT should contain:
       """
       Success: Made 0 replacements.
@@ -613,6 +647,7 @@ Feature: Do global search/replace
       """
       Warning: No primary keys for table 'no_key'.
       """
+    And the return code should be 0
 
   Scenario: Search / replace is case sensitive
     Given a WP install
@@ -653,7 +688,7 @@ Feature: Do global search/replace
     When I run `wp post create --post_title='Title_baz__baz_' --post_content='Content_baz_12345678901234567890_baz_12345678901234567890' --porcelain`
     Then save STDOUT as {POST_ID}
 
-    When I run `wp search-replace '_baz_' '_' --dry-run --log  --before_context=10 --after_context=10`
+    When I run `wp search-replace '_baz_' '_' wp_posts --dry-run --log  --before_context=10 --after_context=10`
     Then STDOUT should contain:
       """
       Success: 2 replacements to be made.
@@ -677,7 +712,7 @@ Feature: Do global search/replace
       """
     And STDERR should be empty
 
-    When I run `wp search-replace '_baz_' '' --dry-run --log=replace.log`
+    When I run `wp search-replace '_baz_' '' wp_posts --dry-run --log=replace.log`
     Then STDOUT should contain:
       """
       Success: 2 replacements to be made.
@@ -701,7 +736,7 @@ Feature: Do global search/replace
     And STDERR should be empty
 
     # kana with diacritic and decomposed "a" + umlaut.
-    When I run `wp search-replace '_baz_' '_バäz_' --log=- --before_context=10 --after_context=20`
+    When I run `wp search-replace '_baz_' '_バäz_' wp_posts --log=- --before_context=10 --after_context=20`
     Then STDOUT should contain:
       """
       Success: Made 2 replacements.
@@ -715,7 +750,7 @@ Feature: Do global search/replace
     And STDERR should be empty
 
     # Testing UTF-8 context
-    When I run `wp search-replace 'z_' 'zzzz_' --log --before_context=2 --after_context=1`
+    When I run `wp search-replace 'z_' 'zzzz_' wp_posts --log --before_context=2 --after_context=1`
     Then STDOUT should contain:
       """
       Success: Made 2 replacements.
@@ -806,7 +841,7 @@ Feature: Do global search/replace
     When I run `wp post create --post_title='Title_baz__boz_' --post_content='Content_baz_1234567890_bez_1234567890_biz_1234567890_boz_1234567890_buz_' --porcelain`
     Then save STDOUT as {POST_ID}
 
-    When I run `wp search-replace '_b[aeiou]z_' '_bz_' --regex --dry-run --log  --before_context=11 --after_context=11`
+    When I run `wp search-replace '_b[aeiou]z_' '_bz_' wp_posts --regex --dry-run --log  --before_context=11 --after_context=11`
     Then STDOUT should contain:
       """
       Success: 2 replacements to be made.
@@ -830,7 +865,7 @@ Feature: Do global search/replace
       """
     And STDERR should be empty
 
-    When I run `wp search-replace '_b([aeiou])z_' '_$1b\\1z_\0' --regex --log  --before_context=11 --after_context=11`
+    When I run `wp search-replace '_b([aeiou])z_' '_$1b\\1z_\0' wp_posts --regex --log  --before_context=11 --after_context=11`
     Then STDOUT should contain:
       """
       Success: Made 2 replacements.

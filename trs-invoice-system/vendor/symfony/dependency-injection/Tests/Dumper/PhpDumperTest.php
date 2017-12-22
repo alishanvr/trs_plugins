@@ -68,6 +68,7 @@ class PhpDumperTest extends TestCase
             'optimize concatenation with empty string' => 'string1%empty_value%string2',
             'optimize concatenation from the start' => '%empty_value%start',
             'optimize concatenation at the end' => 'end%empty_value%',
+            'new line' => "string with \nnew line",
         ));
 
         $container = new ContainerBuilder();
@@ -324,6 +325,15 @@ class PhpDumperTest extends TestCase
         $dumper = new PhpDumper($container);
 
         $this->assertStringEqualsFile(self::$fixturesPath.'/php/services24.php', $dumper->dump());
+    }
+
+    public function testEnvInId()
+    {
+        $container = include self::$fixturesPath.'/containers/container_env_in_id.php';
+        $container->compile();
+        $dumper = new PhpDumper($container);
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_env_in_id.php', $dumper->dump());
     }
 
     public function testEnvParameter()

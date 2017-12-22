@@ -383,6 +383,48 @@ class VersionGuesserTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals("2.0.5.0-alpha2", $versionData['version']);
     }
 
+    public function testTagBecomesPrettyVersion()
+    {
+        $executor = $this->getMockBuilder('\\Composer\\Util\\ProcessExecutor')
+            ->setMethods(array('execute'))
+            ->disableArgumentCloning()
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+
+        $self = $this;
+
+        $executor
+            ->expects($this->at(0))
+            ->method('execute')
+            ->willReturnCallback(function ($command, &$output) use ($self) {
+                $self->assertEquals('git branch --no-color --no-abbrev -v', $command);
+                $output = "* (HEAD detached at 1.0.0) c006f0c12bbbf197b5c071ffb1c0e9812bb14a4d Commit message\n";
+
+                return 0;
+            })
+        ;
+
+        $executor
+            ->expects($this->at(1))
+            ->method('execute')
+            ->willReturnCallback(function ($command, &$output) use ($self) {
+                $self->assertEquals('git describe --exact-match --tags', $command);
+                $output = '1.0.0';
+
+                return 0;
+            })
+        ;
+
+        $config = new Config;
+        $config->merge(array('repositories' => array('packagist' => false)));
+        $guesser = new VersionGuesser($config, $executor, new VersionParser());
+        $versionData = $guesser->guessVersion(array(), 'dummy/path');
+
+        $this->assertEquals('1.0.0.0', $versionData['version']);
+        $this->assertEquals('1.0.0', $versionData['pretty_version']);
+    }
+
     public function testInvalidTagBecomesVersion()
     {
         $executor = $this->getMockBuilder('\\Composer\\Util\\ProcessExecutor')
@@ -411,5 +453,36 @@ class VersionGuesserTest extends \PHPUnit_Framework_TestCase
         $versionData = $guesser->guessVersion(array(), 'dummy/path');
 
         $this->assertEquals("dev-foo", $versionData['version']);
+    }
+
+    public function testNumericBranchesShowNicely()
+    {
+        $executor = $this->getMockBuilder('\\Composer\\Util\\ProcessExecutor')
+            ->setMethods(array('execute'))
+            ->disableArgumentCloning()
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+
+        $self = $this;
+
+        $executor
+            ->expects($this->at(0))
+            ->method('execute')
+            ->willReturnCallback(function ($command, &$output) use ($self) {
+                $self->assertEquals('git branch --no-color --no-abbrev -v', $command);
+                $output = "* 1.5 03a15d220da53c52eddd5f32ffca64a7b3801bea Commit message\n";
+
+                return 0;
+            })
+        ;
+
+        $config = new Config;
+        $config->merge(array('repositories' => array('packagist' => false)));
+        $guesser = new VersionGuesser($config, $executor, new VersionParser());
+        $versionData = $guesser->guessVersion(array(), 'dummy/path');
+
+        $this->assertEquals("1.5.x-dev", $versionData['pretty_version']);
+        $this->assertEquals("1.5.9999999.9999999-dev", $versionData['version']);
     }
 }

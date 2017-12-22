@@ -1,3 +1,25 @@
+### [1.5.6] - 2017-12-18
+
+  * Fixed root package version guessed when a tag is checked out
+  * Fixed support for GitLab reposhosted on non-standard ports
+  * Fixed regression in require command when requiring unstable packages, part 3
+
+### [1.5.5] - 2017-12-01
+
+  * Fixed regression in require command when requiring unstable packages, part 2
+
+### [1.5.4] - 2017-12-01
+
+  * Fixed regression in require command when requiring unstable packages
+
+### [1.5.3] - 2017-11-30
+
+  * Fixed require/remove commands reverting the composer.json change when a non-solver-related error occurs
+  * Fixed GitLabDriver to support installations of GitLab not at the root of the domain
+  * Fixed create-project not following the optimize-autoloader flag of the root package
+  * Fixed Authorization header being forwarded across domains after a redirect
+  * Improved some error messages for clarity
+
 ### [1.5.2] - 2017-09-11
 
   * Fixed GitLabDriver looping endlessly in some conditions
@@ -567,6 +589,10 @@
 
   * Initial release
 
+[1.5.6]: https://github.com/composer/composer/compare/1.5.5...1.5.6
+[1.5.5]: https://github.com/composer/composer/compare/1.5.4...1.5.5
+[1.5.4]: https://github.com/composer/composer/compare/1.5.3...1.5.4
+[1.5.3]: https://github.com/composer/composer/compare/1.5.2...1.5.3
 [1.5.2]: https://github.com/composer/composer/compare/1.5.1...1.5.2
 [1.5.1]: https://github.com/composer/composer/compare/1.5.0...1.5.1
 [1.5.0]: https://github.com/composer/composer/compare/1.4.3...1.5.0

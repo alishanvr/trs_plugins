@@ -13,7 +13,9 @@ return array(
     'a0edc8309cc5e1d60e3047b5df6b7052' => $vendorDir . '/guzzlehttp/psr7/src/functions_include.php',
     'c964ee0ededf28c96ebd9db5099ef910' => $vendorDir . '/guzzlehttp/promises/src/functions_include.php',
     '37a3dc5111fe8f707ab4c132ef1dbc62' => $vendorDir . '/guzzlehttp/guzzle/src/functions_include.php',
+    '5255c38a0faeba867671b61dfda6d864' => $vendorDir . '/paragonie/random_compat/lib/random.php',
     '72579e7bd17821bb1321b87411366eae' => $vendorDir . '/illuminate/support/helpers.php',
+    '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     '1f05372afcc7d0c51a305cef1d56dd01' => $vendorDir . '/wp-cli/widget-command/widget-command.php',
     '8519779bbb65eeb842af2f629ce7b6f8' => $vendorDir . '/wp-cli/super-admin-command/super-admin-command.php',
     '129d58fa8151374aceb8571bcaa97504' => $vendorDir . '/wp-cli/shell-command/shell-command.php',
@@ -36,7 +38,6 @@ return array(
     '5deaf6ce9c8bbdfb65104c7e938d5875' => $vendorDir . '/wp-cli/config-command/config-command.php',
     'b66d29757fcb2fb7a9608d068e3716b0' => $vendorDir . '/wp-cli/checksum-command/checksum-command.php',
     '8a0ad02df6a5087f2c380f8fd52db273' => $vendorDir . '/wp-cli/cache-command/cache-command.php',
-    '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     'e2b8090921f5e293ca4eb0c107749811' => $vendorDir . '/lucatume/wp-browser/src/tad/WPBrowser/functions.php',
-    '77e2b76a16f1f5361ffb4a1012c3d9ab' => $baseDir . '/src/common/functions.php',
+    '96202ccde4d99f9ae75ba22c3e3a87a9' => $baseDir . '/src/common/functions.php',
 );
